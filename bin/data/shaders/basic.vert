@@ -3,6 +3,7 @@
 uniform mat4 viewMatrix;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
+uniform mat4 modelViewProjectionMatrix;
 uniform float uElapseTime;
 
 layout (location = 0) in vec3 position;
@@ -22,14 +23,11 @@ out block {
 } Out;
 
 void main()
-{
-	mat4 modelMatrix = inverse(viewMatrix) * modelViewMatrix;
-	vec4 particlePosEye = modelMatrix * vec4(position, 1.0);
-	
-	Out.fragPos = particlePosEye.xyz;
+{	
+	Out.fragPos = modelViewMatrix * vec4(position, 1.0);
 	Out.color = color;
 	Out.texCoord = texCoord;
-	Out.normal = mat3(transpose(inverse(modelMatrix))) * normal; 
+	Out.normal = mat3(transpose(inverse(modelViewMatrix))) * normal; 
 
-	gl_Position = projectionMatrix * viewMatrix * particlePosEye;
+	gl_Position = modelViewProjectionMatrix * vec4(position, 1.0);
 }
