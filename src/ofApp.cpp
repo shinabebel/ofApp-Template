@@ -12,6 +12,7 @@ void ofApp::setup(){
 	mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
 
 	mGui.setup("Settings");
+	mGui.add(mUniforms);
 }
 
 //--------------------------------------------------------------
