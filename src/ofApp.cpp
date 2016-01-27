@@ -11,15 +11,14 @@ void ofApp::setup(){
 	mUniforms.setName("Uniforms");
 	mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
 
-	mGui.setName("Settings");
-	mGui.add(mUniforms);
+	mGui.setup("Settings");
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
 	uElapsedTime = ofGetElapsedTimef();
-
+	
 	mFbo.begin();
 	ofClear(0);
 	mShader.begin();
