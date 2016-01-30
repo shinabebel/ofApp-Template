@@ -24,7 +24,7 @@ out block {
 
 void main()
 {	
-	Out.fragPos = modelViewMatrix * vec4(position, 1.0);
+	Out.fragPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
 	Out.color = color;
 	Out.texCoord = texCoord;
 	Out.normal = mat3(transpose(inverse(modelViewMatrix))) * normal; 

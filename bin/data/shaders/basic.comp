@@ -1,5 +1,5 @@
 #version 440 core
-#define WORK_GROUP_SIZE = 1024;
+#define WORK_GROUP_SIZE 1024
 
 struct Particle {
 	vec4 pos;
