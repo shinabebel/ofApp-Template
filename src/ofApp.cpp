@@ -4,15 +4,21 @@
 void ofApp::setup(){
 	ofSetWindowShape(WIDTH, HEIGHT);
 	ofSetWindowPosition((ofGetScreenWidth() - ofGetWidth()) / 2, (ofGetScreenHeight() - ofGetHeight()) / 2);
+	ofSetFrameRate(60);
+	ofDisableArbTex();
 	//ofSetVerticalSync(true);
 
-	mFbo.allocate(1920, 1920);
+	mFbo = create<ofFbo>();
+	mFbo->allocate(1920, 1920);
 
 	mUniforms.setName("Uniforms");
 	mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
 
-	mGui.setup("Settings");
-	mGui.add(mUniforms);
+	mGui = create<ofxGuiGroup>();
+	mGui->setup("Settings");
+	mGui->add(mUniforms);
+
+	loadShaders();
 }
 
 //--------------------------------------------------------------
@@ -20,23 +26,26 @@ void ofApp::update(){
 	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
 	uElapsedTime = ofGetElapsedTimef();
 	
-	mFbo.begin();
+	mFbo->begin();
 	ofClear(0);
-	mShader.begin();
-	mShader.setUniforms(mUniforms);
+	mShader->begin();
+	mShader->setUniforms(mUniforms);
 
-	mShader.end();
-	mFbo.end();
+	mShader->end();
+	mFbo->end();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofClear(0);
 
-	mFbo.draw(0, (ofGetHeight() - ofGetWidth()) / 2, ofGetWidth(), ofGetWidth());
+	mFbo->draw(0, (ofGetHeight() - ofGetWidth()) / 2, ofGetWidth(), ofGetWidth());
 
-	if (bGuiVisible)
-		mGui.draw();
+	if (bDebugVisible)
+	{
+		mGui->draw();
+	}
+		
 }
 
 //--------------------------------------------------------------
@@ -55,7 +64,7 @@ void ofApp::keyPressed(int key){
 	switch (key)
 	{
 	case OF_KEY_F1:
-		bGuiVisible = !bGuiVisible;
+		bDebugVisible = !bDebugVisible;
 		break;
 	case OF_KEY_F5:
 		loadShaders();
@@ -120,8 +129,9 @@ void ofApp::loadShaders()
 {
 	printf("%s load shaders\n", ofGetTimestampString().c_str());
 
-	mShader.unload();
-	mShader.setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
-	mShader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
-	mShader.linkProgram();
+	mShader.reset();
+	mShader = create<ofShader>();
+	mShader->setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
+	mShader->setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
+	mShader->linkProgram();
 }

@@ -3,6 +3,9 @@
 #include "ofMain.h"
 #include "ofxGui.h"
 
+template<typename T>
+static std::shared_ptr<T> create() { return std::shared_ptr<T>(new T); }
+
 class ofApp : public ofBaseApp{
 
 public:
@@ -33,12 +36,12 @@ private:
 		HEIGHT = 720
 	};
 	
-	bool bGuiVisible = true;
-	ofxPanel mGui;
+	bool bDebugVisible = true;
+	std::shared_ptr<ofxGuiGroup> mGui;
 
 	ofParameterGroup mUniforms;
 	ofParameter<float> uElapsedTime;
 	
-	ofFbo mFbo;
-	ofShader mShader;
+	std::shared_ptr<ofFbo> mFbo;
+	std::shared_ptr<ofShader> mShader;
 };
