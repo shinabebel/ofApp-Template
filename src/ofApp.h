@@ -3,9 +3,6 @@
 #include "ofMain.h"
 #include "ofxGui.h"
 
-template<typename T>
-static std::shared_ptr<T> create() { return std::shared_ptr<T>(new T); }
-
 class ofApp : public ofBaseApp{
 
 public:
@@ -33,7 +30,8 @@ protected:
 private:
 	enum {
 		WIDTH = 1280,
-		HEIGHT = 720
+		HEIGHT = 720,
+        FBO_SIZE = 1920
 	};
 	
 	bool bDebugVisible = true;

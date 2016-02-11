@@ -7,16 +7,26 @@ void ofApp::setup(){
 	ofSetFrameRate(60);
 	ofDisableArbTex();
 	//ofSetVerticalSync(true);
-
-	mFbo = create<ofFbo>();
-	mFbo->allocate(1920, 1920);
-
-	mUniforms.setName("Uniforms");
-	mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
-
-	mGui = create<ofxGuiGroup>();
-	mGui->setup("Settings");
-	mGui->add(mUniforms);
+    
+    {
+        ofFbo::Settings s;
+        s.width = s.height = FBO_SIZE;
+        s.useDepth = true;
+        s.colorFormats.emplace_back(GL_RGBA);
+        
+        mFbo = shared_ptr<ofFbo>(new ofFbo);
+        mFbo->allocate(s);
+    }
+    
+    {
+        mUniforms.setName("Uniforms");
+        mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
+        
+        mGui = shared_ptr<ofxGuiGroup>(new ofxGuiGroup);
+        mGui->setup("GUI");
+        mGui->add(mUniforms);
+    }
+	
 
 	loadShaders();
 }
@@ -28,10 +38,16 @@ void ofApp::update(){
 	
 	mFbo->begin();
 	ofClear(0);
-	mShader->begin();
-	mShader->setUniforms(mUniforms);
-
-	mShader->end();
+    if (mShader)
+    {
+        mShader->begin();
+        mShader->setUniforms(mUniforms);
+    }
+	
+    if (mShader)
+    {
+        mShader->end();
+    }
 	mFbo->end();
 }
 
@@ -130,7 +146,7 @@ void ofApp::loadShaders()
 	printf("%s load shaders\n", ofGetTimestampString().c_str());
 
 	mShader.reset();
-	mShader = create<ofShader>();
+	mShader = shared_ptr<ofShader>(new ofShader);
 	mShader->setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
 	mShader->setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
 	mShader->linkProgram();
