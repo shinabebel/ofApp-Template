@@ -19,11 +19,25 @@ void ofApp::setup(){
     }
     
     {
+		mSettings.setName("Settings");
+		mSettings.add(gThreshold.set("threshold", 128.0f, 0.0f, 255.0f));
+
         mUniforms.setName("Uniforms");
         mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
         
         mGui = shared_ptr<ofxGuiGroup>(new ofxGuiGroup);
+		mGui->loadFont("fonts/NotoSans-Bold.ttf", 8);
+		mGui->setHeaderBackgroundColor(ofColor::fromHex(0x1A1A1A));
+		mGui->setBorderColor(ofColor::fromHex(0x1A1A1A));
+		mGui->setDefaultHeaderBackgroundColor(ofColor::fromHex(0x1A1A1A));
+		mGui->setDefaultBackgroundColor(ofColor::fromHex(0x222222));
+		mGui->setDefaultFillColor(ofColor::fromHex(0x303030));
+		mGui->setDefaultTextColor(ofColor::fromHex(0xEEEEEE));
+		mGui->setDefaultBorderColor(ofColor::fromHex(0x1A1A1A));
+		mGui->setDefaultTextPadding(10);
+		mGui->setDefaultHeight(22);
         mGui->setup("GUI");
+		mGui->add(mSettings);
         mGui->add(mUniforms);
     }
 	

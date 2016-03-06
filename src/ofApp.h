@@ -37,6 +37,9 @@ private:
 	bool bDebugVisible = true;
 	std::shared_ptr<ofxGuiGroup> mGui;
 
+	ofParameterGroup mSettings;
+	ofParameter<float> gThreshold;
+
 	ofParameterGroup mUniforms;
 	ofParameter<float> uElapsedTime;
 	
