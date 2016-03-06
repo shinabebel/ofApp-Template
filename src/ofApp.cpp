@@ -25,20 +25,12 @@ void ofApp::setup(){
         mUniforms.setName("Uniforms");
         mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
         
-        mGui = shared_ptr<ofxGuiGroup>(new ofxGuiGroup);
-		mGui->loadFont("fonts/NotoSans-Bold.ttf", 8);
-		mGui->setHeaderBackgroundColor(ofColor::fromHex(0x1A1A1A));
-		mGui->setBorderColor(ofColor::fromHex(0x1A1A1A));
-		mGui->setDefaultHeaderBackgroundColor(ofColor::fromHex(0x1A1A1A));
-		mGui->setDefaultBackgroundColor(ofColor::fromHex(0x222222));
-		mGui->setDefaultFillColor(ofColor::fromHex(0x303030));
-		mGui->setDefaultTextColor(ofColor::fromHex(0xEEEEEE));
-		mGui->setDefaultBorderColor(ofColor::fromHex(0x1A1A1A));
-		mGui->setDefaultTextPadding(10);
-		mGui->setDefaultHeight(22);
-        mGui->setup("GUI");
+		mGui = shared_ptr<ofxGuiGroup>(new ofxGuiGroup);
+		loadGuiTheme(mGui, "fonts/theme.xml");
+
+		mGui->setup("GUI");
 		mGui->add(mSettings);
-        mGui->add(mUniforms);
+		mGui->add(mUniforms);
     }
 	
 
@@ -153,6 +145,35 @@ void ofApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
+}
+
+///////////////////////////////////////////////////////////////
+
+void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
+{
+	ofXml xml(path);
+	gui->loadFont(xml.getValue("FONT_NAME"), xml.getIntValue("FONT_SIZE"));
+	gui->setDefaultTextPadding(xml.getIntValue("TEXT_PADDING"));
+	gui->setDefaultHeight(xml.getIntValue("HEIGHT"));
+
+	string theme_name = xml.getValue("THEME_NAME");
+	if (xml.exists(theme_name))
+	{
+		xml.setTo(theme_name);
+		auto hexHeaderBackgroundColor = ofColor::fromHex(ofHexToInt(xml.getValue("HeaderBackgroundColor")));
+		auto hexBackgroundColor = ofColor::fromHex(ofHexToInt(xml.getValue("BackgroundColor")));
+		auto hexBorderColor = ofColor::fromHex(ofHexToInt(xml.getValue("BorderColor")));
+		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml.getValue("FillColor")));
+		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml.getValue("TextColor")));
+		gui->setHeaderBackgroundColor(hexHeaderBackgroundColor);
+		gui->setBorderColor(hexBorderColor);
+		gui->setTextColor(hexTextColor);
+		gui->setDefaultHeaderBackgroundColor(hexHeaderBackgroundColor);
+		gui->setDefaultBackgroundColor(hexBackgroundColor);
+		gui->setDefaultBorderColor(hexBorderColor);
+		gui->setDefaultFillColor(hexFillColor);
+		gui->setDefaultTextColor(hexTextColor);
+	}
 }
 
 void ofApp::loadShaders()

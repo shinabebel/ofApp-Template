@@ -22,6 +22,7 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
+	void loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path);
 	void loadShaders();
 
 protected:
