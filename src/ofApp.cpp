@@ -54,6 +54,7 @@ void ofApp::update(){
     {
         mShader->end();
     }
+
 	mFbo->end();
 }
 
@@ -166,7 +167,9 @@ void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml.getValue("FillColor")));
 		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml.getValue("TextColor")));
 		gui->setHeaderBackgroundColor(hexHeaderBackgroundColor);
+		gui->setBackgroundColor(hexBackgroundColor);
 		gui->setBorderColor(hexBorderColor);
+		gui->setFillColor(hexFillColor);
 		gui->setTextColor(hexTextColor);
 		gui->setDefaultHeaderBackgroundColor(hexHeaderBackgroundColor);
 		gui->setDefaultBackgroundColor(hexBackgroundColor);
