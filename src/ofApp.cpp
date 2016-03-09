@@ -54,6 +54,7 @@ void ofApp::update(){
     {
         mShader->end();
     }
+
 	mFbo->end();
 }
 
@@ -166,9 +167,9 @@ void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml.getValue("FillColor")));
 		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml.getValue("TextColor")));
 		gui->setHeaderBackgroundColor(hexHeaderBackgroundColor);
-		gui->setBackgroundColor(hexHeaderBackgroundColor);
+		gui->setBackgroundColor(hexBackgroundColor);
 		gui->setBorderColor(hexBorderColor);
-		gui->setFillColor(hexTextColor);
+		gui->setFillColor(hexFillColor);
 		gui->setTextColor(hexTextColor);
 		gui->setDefaultHeaderBackgroundColor(hexHeaderBackgroundColor);
 		gui->setDefaultBackgroundColor(hexBackgroundColor);
@@ -187,35 +188,4 @@ void ofApp::loadShaders()
 	mShader->setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
 	mShader->setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
 	mShader->linkProgram();
-}
-
-void ofApp::drawRectangle(float x, float y, float w, float h)
-{
-	static ofVbo vbo;
-	vector<ofVec3f> vertices;
-	vertices.emplace_back(x, y, 0);
-	vertices.emplace_back(x + w, y, 0);
-	vertices.emplace_back(x + w, y + h, 0);
-	vertices.emplace_back(x, y + h, 0);
-	vector<ofFloatColor> colors(4, ofGetStyle().color);
-	if (!vbo.getIsAllocated())
-	{
-		vector<ofVec2f> texCoords;
-		texCoords.emplace_back(0, 0);
-		texCoords.emplace_back(1, 0);
-		texCoords.emplace_back(1, 1);
-		texCoords.emplace_back(0, 1);
-		vector<ofVec3f> normals(4, ofVec3f(0, 0, 1));
-
-		vbo.setVertexData(&vertices[0].x, 3, vertices.size(), GL_DYNAMIC_DRAW);
-		vbo.setColorData(&colors[0].r, colors.size(), GL_DYNAMIC_DRAW);
-		vbo.setTexCoordData(&texCoords[0].x, texCoords.size(), GL_STATIC_DRAW);
-		vbo.setNormalData(&normals[0].x, normals.size(), GL_STATIC_DRAW);
-	}
-	else
-	{
-		vbo.updateVertexData(&vertices[0].x, vertices.size());
-		vbo.updateColorData(&colors[0].r, colors.size());
-	}
-	vbo.draw(GL_TRIANGLE_FAN, 0, vertices.size());
 }
