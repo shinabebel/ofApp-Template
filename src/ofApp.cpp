@@ -23,6 +23,7 @@ void ofApp::setup(){
 		mSettings.add(gThreshold.set("threshold", 128.0f, 0.0f, 255.0f));
 
         mUniforms.setName("Uniforms");
+		mUniforms.add(uDeltaTime.set("uDeltaTime", 0.0f, 0.0f, 1.0f));
         mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
         
 		mGui = shared_ptr<ofxGuiGroup>(new ofxGuiGroup);

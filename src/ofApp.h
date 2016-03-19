@@ -42,6 +42,7 @@ private:
 	ofParameter<float> gThreshold;
 
 	ofParameterGroup mUniforms;
+	ofParameter<float> uDeltaTime;
 	ofParameter<float> uElapsedTime;
 	
 	std::shared_ptr<ofFbo> mFbo;
