@@ -24,6 +24,9 @@ public:
 
 	void loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path);
 	void loadShaders();
+	
+	void drawRectangle(float x, float y, float w, float h);
+	void drawRectangle(const ofRectangle& rect) { drawRectangle(rect.x, rect.y, rect.width, rect.height); }
 
 protected:
 
