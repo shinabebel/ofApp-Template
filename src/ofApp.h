@@ -29,7 +29,22 @@ public:
 	void drawRectangle(const ofRectangle& rect) { drawRectangle(rect.x, rect.y, rect.width, rect.height); }
 
 protected:
+	ofRectangle getCenteredRect(int srcWidth, int srcHeight, int otherWidth, int otherHeight, bool isFill = true)
+	{
+		auto other = ofRectangle(0, 0, otherWidth, otherHeight);
+		ofRectangle result;
+		result.setFromCenter(other.getCenter(), srcWidth, srcHeight);
+		float scaleBy;
+		auto aspectAspect = result.getAspectRatio() / other.getAspectRatio();
 
+		if ((isFill && aspectAspect <= 1.0f) || (!isFill && aspectAspect >= 1.0f))
+			scaleBy = other.getWidth() / result.getWidth();
+		else
+			scaleBy = other.getHeight() / result.getHeight();
+
+		result.scaleFromCenter(scaleBy);
+		return result;
+	}
 
 private:
 	enum {
