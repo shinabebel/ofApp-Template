@@ -41,29 +41,25 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
 	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
+	uDeltaTime = ofGetElapsedTimef() - uElapsedTime;
 	uElapsedTime = ofGetElapsedTimef();
 	
 	mFbo->begin();
 	ofClear(0);
-    if (mShader)
-    {
-        mShader->begin();
-        mShader->setUniforms(mUniforms);
-    }
-	
-    if (mShader)
-    {
-        mShader->end();
-    }
-
+    mShader->begin();
+    mShader->setUniforms(mUniforms);
+    
+    mShader->end();
 	mFbo->end();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofClear(0);
-
-	mFbo->draw(0, (ofGetHeight() - ofGetWidth()) / 2, ofGetWidth(), ofGetWidth());
+	auto viewport = ofGetCurrentViewport();
+	
+	auto rect = getCenteredRect(mFbo->getWidth(), mFbo->getHeight(), viewport.width, viewport.height);
+	mFbo->draw(rect);
 
 	if (bDebugVisible)
 	{
