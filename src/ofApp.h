@@ -22,7 +22,7 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
-	void loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path);
+	void loadGuiTheme(ofxGuiGroup& gui, string path);
 	void loadShaders();
 	
 	void drawRectangle(float x, float y, float w, float h);
@@ -54,7 +54,7 @@ private:
 	};
 	
 	bool bDebugVisible = true;
-	std::shared_ptr<ofxGuiGroup> mGui;
+	std::vector<std::shared_ptr<ofxGuiGroup> > mGui;
 
 	ofParameterGroup mSettings;
 	ofParameter<float> gThreshold;

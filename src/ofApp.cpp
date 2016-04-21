@@ -26,12 +26,25 @@ void ofApp::setup(){
 		mUniforms.add(uDeltaTime.set("uDeltaTime", 0.0f, 0.0f, 1.0f));
         mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
         
-		mGui = shared_ptr<ofxGuiGroup>(new ofxGuiGroup);
-		loadGuiTheme(mGui, "fonts/theme.xml");
+		const string theme_path = "fonts/theme.xml";
 
-		mGui->setup("GUI");
-		mGui->add(mSettings);
-		mGui->add(mUniforms);
+		ofxGuiGroup gui;
+		loadGuiTheme(gui, theme_path);
+		gui.setup("GUI");
+		gui.add(mSettings);
+		gui.add(mUniforms);
+		mGui.push_back(std::make_shared<ofxGuiGroup>(gui));
+
+		ofxGuiGroup info_gui;
+		loadGuiTheme(info_gui, theme_path);
+		ofParameterGroup infos;
+		infos.setName("Hot Key");
+		infos.add(ofParameter<string>().set("F1", "Gui"));
+		infos.add(ofParameter<string>().set("F5", "Reload Shaders"));
+		infos.add(ofParameter<string>().set("F11", "Fullscreen"));
+		info_gui.setup("INFO");
+		info_gui.add(infos);
+		mGui.push_back(std::make_shared<ofxGuiGroup>(info_gui));
     }
 	
 
@@ -63,7 +76,13 @@ void ofApp::draw(){
 
 	if (bDebugVisible)
 	{
-		mGui->draw();
+		ofPushMatrix();
+		for (auto& gui : mGui)
+		{
+			gui->draw();
+			ofTranslate(gui->getWidth(), 0.0f);
+		}
+		ofPopMatrix();
 	}
 		
 }
@@ -147,12 +166,12 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 ///////////////////////////////////////////////////////////////
 
-void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
+void ofApp::loadGuiTheme(ofxGuiGroup& gui, string path)
 {
 	ofXml xml(path);
-	gui->loadFont(xml.getValue("FONT_NAME"), xml.getIntValue("FONT_SIZE"));
-	gui->setDefaultTextPadding(xml.getIntValue("TEXT_PADDING"));
-	gui->setDefaultHeight(xml.getIntValue("HEIGHT"));
+	gui.loadFont(xml.getValue("FONT_NAME"), xml.getIntValue("FONT_SIZE"));
+	gui.setDefaultTextPadding(xml.getIntValue("TEXT_PADDING"));
+	gui.setDefaultHeight(xml.getIntValue("HEIGHT"));
 
 	string theme_name = xml.getValue("THEME_NAME");
 	if (xml.exists(theme_name))
@@ -163,16 +182,16 @@ void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 		auto hexBorderColor = ofColor::fromHex(ofHexToInt(xml.getValue("BorderColor")));
 		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml.getValue("FillColor")));
 		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml.getValue("TextColor")));
-		gui->setHeaderBackgroundColor(hexHeaderBackgroundColor);
-		gui->setBackgroundColor(hexBackgroundColor);
-		gui->setBorderColor(hexBorderColor);
-		gui->setFillColor(hexFillColor);
-		gui->setTextColor(hexTextColor);
-		gui->setDefaultHeaderBackgroundColor(hexHeaderBackgroundColor);
-		gui->setDefaultBackgroundColor(hexBackgroundColor);
-		gui->setDefaultBorderColor(hexBorderColor);
-		gui->setDefaultFillColor(hexFillColor);
-		gui->setDefaultTextColor(hexTextColor);
+		gui.setHeaderBackgroundColor(hexHeaderBackgroundColor);
+		gui.setBackgroundColor(hexBackgroundColor);
+		gui.setBorderColor(hexBorderColor);
+		gui.setFillColor(hexFillColor);
+		gui.setTextColor(hexTextColor);
+		gui.setDefaultHeaderBackgroundColor(hexHeaderBackgroundColor);
+		gui.setDefaultBackgroundColor(hexBackgroundColor);
+		gui.setDefaultBorderColor(hexBorderColor);
+		gui.setDefaultFillColor(hexFillColor);
+		gui.setDefaultTextColor(hexTextColor);
 	}
 }
 
