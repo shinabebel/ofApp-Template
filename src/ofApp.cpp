@@ -19,32 +19,40 @@ void ofApp::setup(){
     }
     
     {
+		const string theme_path = "fonts/theme.xml";
+		ofVec2f gui_pos;
+		shared_ptr<ofxGuiGroup> gui;
+		auto getNextPosition = [&]() -> ofVec2f { return gui->getPosition() + ofVec2f(gui->getWidth(), 0); };
+		
+
 		mSettings.setName("Settings");
 		mSettings.add(gThreshold.set("threshold", 128.0f, 0.0f, 255.0f));
 
-        mUniforms.setName("Uniforms");
+		mUniforms.setName("Uniforms");
 		mUniforms.add(uDeltaTime.set("uDeltaTime", 0.0f, 0.0f, 1.0f));
-        mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
-        
-		const string theme_path = "fonts/theme.xml";
+		mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
 
-		ofxGuiGroup gui;
+		gui.reset(new ofxGuiGroup);
 		loadGuiTheme(gui, theme_path);
-		gui.setup("GUI");
-		gui.add(mSettings);
-		gui.add(mUniforms);
-		mGui.push_back(std::make_shared<ofxGuiGroup>(gui));
+		gui->setup("GUI");
+		gui->add(mSettings);
+		gui->add(mUniforms);
+		gui_pos = getNextPosition();
+		mGui.push_back(gui);
 
-		ofxGuiGroup info_gui;
-		loadGuiTheme(info_gui, theme_path);
+
+		gui.reset(new ofxGuiGroup);
+		loadGuiTheme(gui, theme_path);
 		ofParameterGroup infos;
 		infos.setName("Hot Key");
 		infos.add(ofParameter<string>().set("F1", "Gui"));
 		infos.add(ofParameter<string>().set("F5", "Reload Shaders"));
 		infos.add(ofParameter<string>().set("F11", "Fullscreen"));
-		info_gui.setup("INFO");
-		info_gui.add(infos);
-		mGui.push_back(std::make_shared<ofxGuiGroup>(info_gui));
+		gui->setup("INFO");
+		gui->add(infos);
+		gui->setPosition(gui_pos);
+		gui_pos = getNextPosition();
+		mGui.push_back(gui);
     }
 	
 
@@ -76,13 +84,8 @@ void ofApp::draw(){
 
 	if (bDebugVisible)
 	{
-		ofPushMatrix();
 		for (auto& gui : mGui)
-		{
 			gui->draw();
-			ofTranslate(gui->getWidth(), 0.0f);
-		}
-		ofPopMatrix();
 	}
 		
 }
@@ -166,12 +169,12 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 ///////////////////////////////////////////////////////////////
 
-void ofApp::loadGuiTheme(ofxGuiGroup& gui, string path)
+void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 {
 	ofXml xml(path);
-	gui.loadFont(xml.getValue("FONT_NAME"), xml.getIntValue("FONT_SIZE"));
-	gui.setDefaultTextPadding(xml.getIntValue("TEXT_PADDING"));
-	gui.setDefaultHeight(xml.getIntValue("HEIGHT"));
+	gui->loadFont(xml.getValue("FONT_NAME"), xml.getIntValue("FONT_SIZE"));
+	gui->setDefaultTextPadding(xml.getIntValue("TEXT_PADDING"));
+	gui->setDefaultHeight(xml.getIntValue("HEIGHT"));
 
 	string theme_name = xml.getValue("THEME_NAME");
 	if (xml.exists(theme_name))
@@ -182,16 +185,16 @@ void ofApp::loadGuiTheme(ofxGuiGroup& gui, string path)
 		auto hexBorderColor = ofColor::fromHex(ofHexToInt(xml.getValue("BorderColor")));
 		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml.getValue("FillColor")));
 		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml.getValue("TextColor")));
-		gui.setHeaderBackgroundColor(hexHeaderBackgroundColor);
-		gui.setBackgroundColor(hexBackgroundColor);
-		gui.setBorderColor(hexBorderColor);
-		gui.setFillColor(hexFillColor);
-		gui.setTextColor(hexTextColor);
-		gui.setDefaultHeaderBackgroundColor(hexHeaderBackgroundColor);
-		gui.setDefaultBackgroundColor(hexBackgroundColor);
-		gui.setDefaultBorderColor(hexBorderColor);
-		gui.setDefaultFillColor(hexFillColor);
-		gui.setDefaultTextColor(hexTextColor);
+		gui->setHeaderBackgroundColor(hexHeaderBackgroundColor);
+		gui->setBackgroundColor(hexBackgroundColor);
+		gui->setBorderColor(hexBorderColor);
+		gui->setFillColor(hexFillColor);
+		gui->setTextColor(hexTextColor);
+		gui->setDefaultHeaderBackgroundColor(hexHeaderBackgroundColor);
+		gui->setDefaultBackgroundColor(hexBackgroundColor);
+		gui->setDefaultBorderColor(hexBorderColor);
+		gui->setDefaultFillColor(hexFillColor);
+		gui->setDefaultTextColor(hexTextColor);
 	}
 }
 

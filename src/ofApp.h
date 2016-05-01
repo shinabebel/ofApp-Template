@@ -22,7 +22,7 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
-	void loadGuiTheme(ofxGuiGroup& gui, string path);
+	void loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path);
 	void loadShaders();
 	
 	void drawRectangle(float x, float y, float w, float h);
