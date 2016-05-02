@@ -14,7 +14,7 @@ void ofApp::setup(){
         s.useDepth = true;
         s.colorFormats.emplace_back(GL_RGBA);
         
-        mFbo = shared_ptr<ofFbo>(new ofFbo);
+        mFbo.reset(new ofFbo);
         mFbo->allocate(s);
     }
     
@@ -202,8 +202,7 @@ void ofApp::loadShaders()
 {
 	printf("%s load shaders\n", ofGetTimestampString().c_str());
 
-	mShader.reset();
-	mShader = shared_ptr<ofShader>(new ofShader);
+	mShader.reset(new ofShader);
 	mShader->setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
 	mShader->setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
 	mShader->linkProgram();
