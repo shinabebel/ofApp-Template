@@ -45,14 +45,21 @@ void ofApp::setup(){
 		loadGuiTheme(gui, theme_path);
 		ofParameterGroup infos;
 		infos.setName("Hot Key");
-		infos.add(ofParameter<string>().set("F1", "Gui"));
-		infos.add(ofParameter<string>().set("F5", "Reload Shaders"));
-		infos.add(ofParameter<string>().set("F11", "Fullscreen"));
+		infos.add(ofParameter<string>().set("ESC", "exit"));
+		infos.add(ofParameter<string>().set("F1", "gui"));
+		infos.add(ofParameter<string>().set("F5", "reload shaders"));
+		infos.add(ofParameter<string>().set("F11", "fullscreen"));
+		infos.add(ofParameter<string>().set("S", "save settings"));
+		infos.add(ofParameter<string>().set("L", "load settings"));
 		gui->setup("INFO");
 		gui->add(infos);
 		gui->setPosition(gui_pos);
 		gui_pos = getNextPosition();
 		mGui.push_back(gui);
+
+
+		for (auto& g : mGui)
+			g->loadFromFile(getGuiFilename(g));
     }
 	
 
@@ -102,6 +109,12 @@ void ofApp::keyPressed(int key){
 			ofSetWindowPosition(pos.x, pos.y);
 		}
 	};
+
+	auto saveSettings = [&]()
+	{
+		for (auto& g : mGui)
+			g->saveToFile(getGuiFilename(g));
+	};
 	
 	switch (key)
 	{
@@ -113,6 +126,12 @@ void ofApp::keyPressed(int key){
 		break;
 	case OF_KEY_F11:
 		toggleFullscreen();
+		break;
+	case 's':
+		for (auto& g : mGui) g->saveToFile(getGuiFilename(g));
+		break;
+	case 'l':
+		for (auto& g : mGui) g->loadFromFile(getGuiFilename(g));
 		break;
 	}
 }
@@ -196,6 +215,11 @@ void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 		gui->setDefaultFillColor(hexFillColor);
 		gui->setDefaultTextColor(hexTextColor);
 	}
+}
+
+string ofApp::getGuiFilename(std::shared_ptr<ofxGuiGroup> gui)
+{
+	return ofVAArgsToString("settings/%s_setting.xml", gui->getName().c_str());
 }
 
 void ofApp::loadShaders()

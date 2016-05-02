@@ -23,6 +23,7 @@ public:
 	void gotMessage(ofMessage msg);
 
 	void loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path);
+	string getGuiFilename(std::shared_ptr<ofxGuiGroup> gui);
 	void loadShaders();
 	
 	void drawRectangle(float x, float y, float w, float h);
@@ -55,6 +56,7 @@ private:
 	
 	bool bDebugVisible = true;
 	std::vector<std::shared_ptr<ofxGuiGroup> > mGui;
+	const string guiFilename = "settings/gui_settings.xml";
 
 	ofParameterGroup mSettings;
 	ofParameter<float> gThreshold;
