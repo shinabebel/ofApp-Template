@@ -56,7 +56,6 @@ private:
 	
 	bool bDebugVisible = true;
 	std::vector<std::shared_ptr<ofxGuiGroup> > mGui;
-	const string guiFilename = "settings/gui_settings.xml";
 
 	ofParameterGroup mSettings;
 	ofParameter<float> gThreshold;
