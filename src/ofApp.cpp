@@ -23,20 +23,27 @@ void ofApp::setup(){
 		ofVec2f gui_pos;
 		shared_ptr<ofxGuiGroup> gui;
 		auto getNextPosition = [&]() -> ofVec2f { return gui->getPosition() + ofVec2f(gui->getWidth(), 0); };
+		auto setFile = [&]()
+		{
+			string path = ofVAArgsToString("settings/%s_settings.xml", gui->getName().c_str());
+			gui->loadFromFile(path);
+			gui->saveToFile(path);
+		};
 		
 
-		mSettings.setName("Settings");
+		mSettings.setName("settings");
 		mSettings.add(gThreshold.set("threshold", 128.0f, 0.0f, 255.0f));
 
-		mUniforms.setName("Uniforms");
+		mUniforms.setName("uniforms");
 		mUniforms.add(uDeltaTime.set("uDeltaTime", 0.0f, 0.0f, 1.0f));
 		mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
 
 		gui.reset(new ofxGuiGroup);
 		loadGuiTheme(gui, theme_path);
-		gui->setup("GUI");
+		gui->setup("gui");
 		gui->add(mSettings);
 		gui->add(mUniforms);
+		setFile();
 		gui_pos = getNextPosition();
 		mGui.push_back(gui);
 
@@ -44,15 +51,16 @@ void ofApp::setup(){
 		gui.reset(new ofxGuiGroup);
 		loadGuiTheme(gui, theme_path);
 		ofParameterGroup infos;
-		infos.setName("Hot Key");
+		infos.setName("hot key");
 		infos.add(ofParameter<string>().set("ESC", "exit"));
 		infos.add(ofParameter<string>().set("F1", "gui"));
 		infos.add(ofParameter<string>().set("F5", "reload shaders"));
 		infos.add(ofParameter<string>().set("F11", "fullscreen"));
 		infos.add(ofParameter<string>().set("S", "save settings"));
 		infos.add(ofParameter<string>().set("L", "load settings"));
-		gui->setup("INFO");
+		gui->setup("info");
 		gui->add(infos);
+		setFile();
 		gui->setPosition(gui_pos);
 		gui_pos = getNextPosition();
 		mGui.push_back(gui);
