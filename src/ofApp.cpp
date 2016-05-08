@@ -22,14 +22,7 @@ void ofApp::setup(){
 		const string theme_path = "fonts/theme.xml";
 		ofVec2f gui_pos;
 		shared_ptr<ofxGuiGroup> gui;
-		auto getNextPosition = [&]() -> ofVec2f { return gui->getPosition() + ofVec2f(gui->getWidth(), 0); };
-		auto setFile = [&]()
-		{
-			string path = ofVAArgsToString("settings/%s_settings.xml", gui->getName().c_str());
-			gui->loadFromFile(path);
-			gui->saveToFile(path);
-		};
-		
+		auto getNextPosition = [&]() -> ofVec2f { return gui->getPosition() + ofVec2f(gui->getWidth(), 0); };		
 
 		mSettings.setName("settings");
 		mSettings.add(gThreshold.set("threshold", 128.0f, 0.0f, 255.0f));
@@ -43,7 +36,6 @@ void ofApp::setup(){
 		gui->setup("gui");
 		gui->add(mSettings);
 		gui->add(mUniforms);
-		setFile();
 		gui_pos = getNextPosition();
 		mGui.push_back(gui);
 
@@ -60,14 +52,17 @@ void ofApp::setup(){
 		infos.add(ofParameter<string>().set("L", "load settings"));
 		gui->setup("info");
 		gui->add(infos);
-		setFile();
 		gui->setPosition(gui_pos);
 		gui_pos = getNextPosition();
 		mGui.push_back(gui);
 
 
 		for (auto& g : mGui)
+		{
 			g->loadFromFile(getGuiFilename(g));
+			g->saveToFile(getGuiFilename(g));
+		}
+			
     }
 	
 
