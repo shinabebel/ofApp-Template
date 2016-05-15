@@ -188,20 +188,26 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 {
-	ofXml xml(path);
-	gui->loadFont(xml.getValue("FONT_NAME"), xml.getIntValue("FONT_SIZE"));
-	gui->setDefaultTextPadding(xml.getIntValue("TEXT_PADDING"));
-	gui->setDefaultHeight(xml.getIntValue("HEIGHT"));
-
-	string theme_name = xml.getValue("THEME_NAME");
-	if (xml.exists(theme_name))
+	auto xml = std::shared_ptr<ofXml>(new ofXml);
+	if (!xml->load(path))
 	{
-		xml.setTo(theme_name);
-		auto hexHeaderBackgroundColor = ofColor::fromHex(ofHexToInt(xml.getValue("HeaderBackgroundColor")));
-		auto hexBackgroundColor = ofColor::fromHex(ofHexToInt(xml.getValue("BackgroundColor")));
-		auto hexBorderColor = ofColor::fromHex(ofHexToInt(xml.getValue("BorderColor")));
-		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml.getValue("FillColor")));
-		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml.getValue("TextColor")));
+		printf("fail to load gui theme settings from %s\n", path.c_str());
+		return;
+	}
+
+	gui->loadFont(xml->getValue("FONT_NAME"), xml->getIntValue("FONT_SIZE"));
+	gui->setDefaultTextPadding(xml->getIntValue("TEXT_PADDING"));
+	gui->setDefaultHeight(xml->getIntValue("HEIGHT"));
+
+	string theme_name = xml->getValue("THEME_NAME");
+	if (xml->exists(theme_name))
+	{
+		xml->setTo(theme_name);
+		auto hexHeaderBackgroundColor = ofColor::fromHex(ofHexToInt(xml->getValue("HeaderBackgroundColor")));
+		auto hexBackgroundColor = ofColor::fromHex(ofHexToInt(xml->getValue("BackgroundColor")));
+		auto hexBorderColor = ofColor::fromHex(ofHexToInt(xml->getValue("BorderColor")));
+		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml->getValue("FillColor")));
+		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml->getValue("TextColor")));
 		gui->setHeaderBackgroundColor(hexHeaderBackgroundColor);
 		gui->setBackgroundColor(hexBackgroundColor);
 		gui->setBorderColor(hexBorderColor);
@@ -212,6 +218,10 @@ void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 		gui->setDefaultBorderColor(hexBorderColor);
 		gui->setDefaultFillColor(hexFillColor);
 		gui->setDefaultTextColor(hexTextColor);
+	}
+	else
+	{
+		printf("gui theme [%s] is missing.\n", theme_name.c_str());
 	}
 }
 
