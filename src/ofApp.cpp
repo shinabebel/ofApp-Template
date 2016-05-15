@@ -50,6 +50,7 @@ void ofApp::setup(){
 		infos.add(ofParameter<string>().set("F11", "fullscreen"));
 		infos.add(ofParameter<string>().set("S", "save settings"));
 		infos.add(ofParameter<string>().set("L", "load settings"));
+		infos.setSerializable(false);
 		gui->setup("info");
 		gui->add(infos);
 		gui->setPosition(gui_pos);
@@ -112,13 +113,7 @@ void ofApp::keyPressed(int key){
 			ofSetWindowPosition(pos.x, pos.y);
 		}
 	};
-
-	auto saveSettings = [&]()
-	{
-		for (auto& g : mGui)
-			g->saveToFile(getGuiFilename(g));
-	};
-	
+		
 	switch (key)
 	{
 	case OF_KEY_F1:
