@@ -7,6 +7,9 @@ void ofApp::setup(){
 	ofSetFrameRate(60);
 	ofDisableArbTex();
 	//ofSetVerticalSync(true);
+
+	string filename = ofVAArgsToString("logs/%s_log.txt", ofGetTimestampString("%Y-%m-%d-%H-%M-%S").c_str());
+	ofLogToFile(filename, true);
     
     {
         ofFbo::Settings s;
