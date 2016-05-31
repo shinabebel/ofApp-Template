@@ -8,9 +8,18 @@ void ofApp::setup(){
 	ofDisableArbTex();
 	//ofSetVerticalSync(true);
 
-	string filename = ofVAArgsToString("logs/%s_log.txt", ofGetTimestampString("%Y-%m-%d-%H-%M-%S").c_str());
-	ofLogToFile(filename, true);
-    
+#ifdef SHIPPING
+	ofLogToFile(ofVAArgsToString("logs/%s_log.txt", ofGetTimestampString("%Y-%m-%d-%H-%M-%S").c_str()));
+	ofHideCursor();
+	ofToggleFullscreen();
+	bDebugVisible = false;
+#endif
+
+	{
+		ofLog(OF_LOG_NOTICE, "application start with resolution: %u x %u", ofGetWidth(), ofGetHeight());
+	}
+	
+
     {
         ofFbo::Settings s;
         s.width = s.height = FBO_SIZE;
@@ -105,6 +114,11 @@ void ofApp::draw(){
 }
 
 //--------------------------------------------------------------
+void ofApp::exit() {
+	ofLog(OF_LOG_NOTICE, "application exit");
+}
+
+//--------------------------------------------------------------
 void ofApp::keyPressed(int key){
 	auto toggleFullscreen = [&]()
 	{
@@ -194,7 +208,7 @@ void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 	auto xml = std::shared_ptr<ofXml>(new ofXml);
 	if (!xml->load(path))
 	{
-		printf("fail to load gui theme settings from %s\n", path.c_str());
+		ofLog(OF_LOG_WARNING, "fail to load gui theme settings from %s\n", path.c_str());
 		return;
 	}
 
@@ -224,7 +238,7 @@ void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
 	}
 	else
 	{
-		printf("gui theme [%s] is missing.\n", theme_name.c_str());
+		ofLog(OF_LOG_WARNING, "gui theme [%s] is missing.\n", theme_name.c_str());
 	}
 }
 
@@ -235,7 +249,7 @@ string ofApp::getGuiFilename(std::shared_ptr<ofxGuiGroup> gui)
 
 void ofApp::loadShaders()
 {
-	printf("%s load shaders\n", ofGetTimestampString().c_str());
+	ofLog(OF_LOG_NOTICE, "%s load shaders", ofGetTimestampString("%H:%M:%S").c_str());
 
 	mShader.reset(new ofShader);
 	mShader->setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
