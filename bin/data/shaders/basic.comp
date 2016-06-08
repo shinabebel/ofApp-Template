@@ -1,4 +1,5 @@
-#version 430 core
+#pragma include <header.glsl>
+
 #define WORK_GROUP_SIZE 1024
 
 struct Particle {

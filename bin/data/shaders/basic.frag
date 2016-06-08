@@ -1,8 +1,4 @@
-#version 430 core
-
-uniform mat4 viewMatrix;
-uniform mat4 modelViewMatrix;
-uniform mat4 projectionMatrix;
+#pragma include <header.glsl>
 
 in block {
 	vec3 fragPos;
