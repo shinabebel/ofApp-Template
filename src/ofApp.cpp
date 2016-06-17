@@ -33,7 +33,7 @@ void ofApp::setup(){
     {
 		const string theme_path = "fonts/theme.xml";
 		ofVec2f gui_pos;
-		shared_ptr<ofxGuiGroup> gui;
+		ofxGuiGroupRef gui;
 		auto getNextPosition = [&]() -> ofVec2f { return gui->getPosition() + ofVec2f(gui->getWidth(), 0); };		
 
 		mSettings.setName("settings");
@@ -203,28 +203,28 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 ///////////////////////////////////////////////////////////////
 
-void ofApp::loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path)
+void ofApp::loadGuiTheme(ofxGuiGroupRef gui, string path)
 {
-	auto xml = std::shared_ptr<ofXml>(new ofXml);
-	if (!xml->load(path))
+	ofXml xml;
+	if (!xml.load(path))
 	{
 		ofLog(OF_LOG_WARNING, "fail to load gui theme settings from %s\n", path.c_str());
 		return;
 	}
 
-	gui->loadFont(xml->getValue("FONT_NAME"), xml->getIntValue("FONT_SIZE"));
-	gui->setDefaultTextPadding(xml->getIntValue("TEXT_PADDING"));
-	gui->setDefaultHeight(xml->getIntValue("HEIGHT"));
+	gui->loadFont(xml.getValue("FONT_NAME"), xml.getIntValue("FONT_SIZE"));
+	gui->setDefaultTextPadding(xml.getIntValue("TEXT_PADDING"));
+	gui->setDefaultHeight(xml.getIntValue("HEIGHT"));
 
-	string theme_name = xml->getValue("THEME_NAME");
-	if (xml->exists(theme_name))
+	string theme_name = xml.getValue("THEME_NAME");
+	if (xml.exists(theme_name))
 	{
-		xml->setTo(theme_name);
-		auto hexHeaderBackgroundColor = ofColor::fromHex(ofHexToInt(xml->getValue("HeaderBackgroundColor")));
-		auto hexBackgroundColor = ofColor::fromHex(ofHexToInt(xml->getValue("BackgroundColor")));
-		auto hexBorderColor = ofColor::fromHex(ofHexToInt(xml->getValue("BorderColor")));
-		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml->getValue("FillColor")));
-		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml->getValue("TextColor")));
+		xml.setTo(theme_name);
+		auto hexHeaderBackgroundColor = ofColor::fromHex(ofHexToInt(xml.getValue("HeaderBackgroundColor")));
+		auto hexBackgroundColor = ofColor::fromHex(ofHexToInt(xml.getValue("BackgroundColor")));
+		auto hexBorderColor = ofColor::fromHex(ofHexToInt(xml.getValue("BorderColor")));
+		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml.getValue("FillColor")));
+		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml.getValue("TextColor")));
 		gui->setHeaderBackgroundColor(hexHeaderBackgroundColor);
 		gui->setBackgroundColor(hexBackgroundColor);
 		gui->setBorderColor(hexBorderColor);
@@ -247,14 +247,39 @@ string ofApp::getGuiFilename(std::shared_ptr<ofxGuiGroup> gui)
 	return ofVAArgsToString("settings/%s_setting.xml", gui->getName().c_str());
 }
 
+ofShaderRef ofApp::autoLoader(string s1, string s2, string s3)
+{
+	int count = !s2.empty() + !s3.empty();
+	bool isComputeShader = false;
+
+	ofShader glsl;
+	if (s2.empty() && s3.empty())
+	{
+		glsl.setupShaderFromFile(GL_COMPUTE_SHADER, s1);
+		isComputeShader = true;
+	}
+	else if (s3.empty())
+	{
+		glsl.setupShaderFromFile(GL_VERTEX_SHADER, s1);
+		glsl.setupShaderFromFile(GL_FRAGMENT_SHADER, s2);
+	}
+	else
+	{
+		glsl.setupShaderFromFile(GL_VERTEX_SHADER, s1);
+		glsl.setupShaderFromFile(GL_FRAGMENT_SHADER, s2);
+		glsl.setupShaderFromFile(GL_GEOMETRY_SHADER, s3);
+	}
+	glsl.linkProgram();
+
+	if (glsl.getUniformLocation("modelViewProjectionMatrix") < 0 && !isComputeShader) return nullptr;
+	else return make_shared<ofShader>(glsl);
+}
+
 void ofApp::loadShaders()
 {
 	ofLog(OF_LOG_NOTICE, "%s load shaders", ofGetTimestampString("%H:%M:%S").c_str());
 
-	mShader.reset(new ofShader);
-	mShader->setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
-	mShader->setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
-	mShader->linkProgram();
+	mShader = autoLoader("shaders/basic.vert", "shaders/basic.frag");
 }
 
 void ofApp::drawRectangle(float x, float y, float w, float h)

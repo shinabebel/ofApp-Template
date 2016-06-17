@@ -5,6 +5,10 @@
 
 //#define SHIPPING
 
+using ofShaderRef = std::shared_ptr<ofShader>;
+using ofFboRef = std::shared_ptr<ofFbo>;
+using ofxGuiGroupRef = std::shared_ptr<ofxGuiGroup>;
+
 class ofApp : public ofBaseApp{
 
 public:
@@ -25,8 +29,9 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
-	void loadGuiTheme(std::shared_ptr<ofxGuiGroup> gui, string path);
-	string getGuiFilename(std::shared_ptr<ofxGuiGroup> gui);
+	void loadGuiTheme(ofxGuiGroupRef gui, string path);
+	string getGuiFilename(ofxGuiGroupRef gui);
+	ofShaderRef autoLoader(string s1, string s2 = "", string s3 = "");
 	void loadShaders();
 	
 	void drawRectangle(float x, float y, float w, float h);
@@ -58,7 +63,7 @@ private:
 	};
 	
 	bool bDebugVisible = true;
-	std::vector<std::shared_ptr<ofxGuiGroup> > mGui;
+	std::vector<ofxGuiGroupRef> mGui;
 
 	ofParameterGroup mSettings;
 	ofParameter<float> gThreshold;
@@ -67,6 +72,6 @@ private:
 	ofParameter<float> uDeltaTime;
 	ofParameter<float> uElapsedTime;
 	
-	std::shared_ptr<ofFbo> mFbo;
-	std::shared_ptr<ofShader> mShader;
+	ofFboRef mFbo;
+	ofShaderRef mShader;
 };
