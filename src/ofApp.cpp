@@ -242,7 +242,7 @@ void ofApp::loadGuiTheme(ofxGuiGroupRef gui, string path)
 	}
 }
 
-string ofApp::getGuiFilename(std::shared_ptr<ofxGuiGroup> gui)
+string ofApp::getGuiFilename(ofxGuiGroupRef gui)
 {
 	return ofVAArgsToString("settings/%s_setting.xml", gui->getName().c_str());
 }
