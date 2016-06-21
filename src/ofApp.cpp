@@ -90,10 +90,11 @@ void ofApp::update(){
 	uElapsedTime = ofGetElapsedTimef();
 	
 	mFbo->begin();
+	auto viewport = ofGetCurrentViewport();
 	ofClear(0);
     mShader->begin();
     mShader->setUniforms(mUniforms);
-    
+	drawRectangle(viewport);
     mShader->end();
 	mFbo->end();
 }
@@ -286,30 +287,23 @@ void ofApp::loadShaders()
 void ofApp::drawRectangle(float x, float y, float w, float h)
 {
 	static ofVbo vbo;
-	vector<ofVec3f> vertices;
-	vertices.emplace_back(x, y, 0);
-	vertices.emplace_back(x + w, y, 0);
-	vertices.emplace_back(x + w, y + h, 0);
-	vertices.emplace_back(x, y + h, 0);
+	vector<ofVec3f> vertices = { ofVec3f(x, y, 0), ofVec3f(x + w, y, 0), ofVec3f(x + w, y + h, 0) , ofVec3f(x, y + h, 0) };
 	vector<ofFloatColor> colors(4, ofGetStyle().color);
 	if (!vbo.getIsAllocated())
 	{
-		vector<ofVec2f> texCoords;
-		texCoords.emplace_back(0, 0);
-		texCoords.emplace_back(1, 0);
-		texCoords.emplace_back(1, 1);
-		texCoords.emplace_back(0, 1);
+		vector<ofVec2f> texCoords = { ofVec2f(0, 0), ofVec2f(1, 0), ofVec2f(1, 1), ofVec2f(0, 1) };
 		vector<ofVec3f> normals(4, ofVec3f(0, 0, 1));
-
+		vector<ofIndexType> indices = { 0, 2, 1, 0, 3, 2 };
 		vbo.setVertexData(&vertices[0].x, 3, vertices.size(), GL_DYNAMIC_DRAW);
 		vbo.setColorData(&colors[0].r, colors.size(), GL_DYNAMIC_DRAW);
 		vbo.setTexCoordData(&texCoords[0].x, texCoords.size(), GL_STATIC_DRAW);
 		vbo.setNormalData(&normals[0].x, normals.size(), GL_STATIC_DRAW);
+		vbo.setIndexData(&indices[0], indices.size(), GL_STATIC_DRAW);
 	}
 	else
 	{
 		vbo.updateVertexData(&vertices[0].x, vertices.size());
 		vbo.updateColorData(&colors[0].r, colors.size());
 	}
-	vbo.draw(GL_TRIANGLE_FAN, 0, vertices.size());
+	vbo.drawElements(GL_TRIANGLES, vbo.getNumIndices());
 }
