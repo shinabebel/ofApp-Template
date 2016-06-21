@@ -35,22 +35,18 @@ public:
 	void loadShaders();
 	
 	void drawRectangle(float x, float y, float w, float h);
+	void drawRectangle(ofVec2f pos, float w, float h) { drawRectangle(pos.x, pos.y, w, h); }
 	void drawRectangle(const ofRectangle& rect) { drawRectangle(rect.x, rect.y, rect.width, rect.height); }
 
 protected:
 	ofRectangle getCenteredRect(int srcWidth, int srcHeight, int otherWidth, int otherHeight, bool isFill = true)
 	{
-		auto other = ofRectangle(0, 0, otherWidth, otherHeight);
-		ofRectangle result;
-		result.setFromCenter(other.getCenter(), srcWidth, srcHeight);
-		float scaleBy;
+		ofRectangle other(0, 0, otherWidth, otherHeight);
+		ofRectangle result; result.setFromCenter(other.getCenter(), srcWidth, srcHeight);
+		float scaleBy = other.getHeight() / result.getHeight();
 		auto aspectAspect = result.getAspectRatio() / other.getAspectRatio();
-
 		if ((isFill && aspectAspect <= 1.0f) || (!isFill && aspectAspect >= 1.0f))
 			scaleBy = other.getWidth() / result.getWidth();
-		else
-			scaleBy = other.getHeight() / result.getHeight();
-
 		result.scaleFromCenter(scaleBy);
 		return result;
 	}
@@ -59,7 +55,8 @@ private:
 	enum {
 		WIDTH = 1280,
 		HEIGHT = 720,
-        FBO_SIZE = 1920
+		FBO_WIDTH = 1920,
+		FBO_HEIGHT = 1080
 	};
 	
 	bool bDebugVisible = true;

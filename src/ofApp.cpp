@@ -22,7 +22,8 @@ void ofApp::setup(){
 
     {
         ofFbo::Settings s;
-        s.width = s.height = FBO_SIZE;
+        s.width = FBO_WIDTH;
+		s.height = FBO_HEIGHT;
         s.useDepth = true;
         s.colorFormats.emplace_back(GL_RGBA);
         
