@@ -29,9 +29,7 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
-	void loadGuiTheme(ofxGuiGroupRef gui, string path);
-	string getGuiFilename(ofxGuiGroupRef gui);
-	ofShaderRef autoLoader(string s1, string s2 = "", string s3 = "");
+	void loadGuiTheme(ofxGuiGroup* gui, string path);
 	void loadShaders();
 	
 	void drawRectangle(float x, float y, float w, float h);
@@ -59,16 +57,24 @@ private:
 		FBO_HEIGHT = 1080
 	};
 	
-	bool bDebugVisible = true;
-	std::vector<ofxGuiGroupRef> mGui;
+	bool is_debug_visible = true;
+	const string gui_filename = "settings/gui_setting.xml";
+	ofxGuiGroup gui;
 
-	ofParameterGroup mSettings;
-	ofParameter<float> gThreshold;
+	// infos
+	ofParameter<string> g_total_mem;
+	ofParameter<string> g_avail_mem;
+	ofParameter<string> g_used_mem;
 
-	ofParameterGroup mUniforms;
-	ofParameter<float> uDeltaTime;
+	// settings
+	ofParameter<float> g_threshold;
+
+	// uniforms
+	ofParameterGroup g_uniforms;
+	ofParameter<float> uTimeStep;
 	ofParameter<float> uElapsedTime;
+	ofParameter<float> uTimeValue;
 	
-	ofFboRef mFbo;
-	ofShaderRef mShader;
+	ofFbo fbo;
+	ofShader shader;
 };

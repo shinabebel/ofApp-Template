@@ -1,25 +1,28 @@
 #include "ofApp.h"
 
+#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX 0x9048
+#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX 0x9049
+
 //--------------------------------------------------------------
 void ofApp::setup(){
 	ofSetWindowShape(WIDTH, HEIGHT);
 	ofSetWindowPosition((ofGetScreenWidth() - ofGetWidth()) / 2, (ofGetScreenHeight() - ofGetHeight()) / 2);
-	ofSetFrameRate(60);
 	ofDisableArbTex();
+	ofSetFrameRate(60);
 	//ofSetVerticalSync(true);
 
 #ifdef SHIPPING
 	ofLogToFile(ofVAArgsToString("logs/%s_log.txt", ofGetTimestampString("%Y-%m-%d-%H-%M-%S").c_str()));
 	ofHideCursor();
 	ofToggleFullscreen();
-	bDebugVisible = false;
+	is_debug_visible = false;
 #endif
 
 	{
 		ofLog(OF_LOG_NOTICE, "application start with resolution: %u x %u", ofGetWidth(), ofGetHeight());
 	}
 	
-
+	// allocate fbo
     {
         ofFbo::Settings s;
         s.width = FBO_WIDTH;
@@ -27,56 +30,38 @@ void ofApp::setup(){
         s.useDepth = true;
         s.colorFormats.emplace_back(GL_RGBA);
         
-        mFbo.reset(new ofFbo);
-        mFbo->allocate(s);
+        fbo.allocate(s);
     }
     
+	// setup gui
     {
-		const string theme_path = "fonts/theme.xml";
-		ofVec2f gui_pos;
-		ofxGuiGroupRef gui;
-		auto getNextPosition = [&]() -> ofVec2f { return gui->getPosition() + ofVec2f(gui->getWidth(), 0); };		
+		loadGuiTheme(&gui, "fonts/theme.xml");
+		gui.setup("gui");
 
-		mSettings.setName("settings");
-		mSettings.add(gThreshold.set("threshold", 128.0f, 0.0f, 255.0f));
-
-		mUniforms.setName("uniforms");
-		mUniforms.add(uDeltaTime.set("uDeltaTime", 0.0f, 0.0f, 1.0f));
-		mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
-
-		gui.reset(new ofxGuiGroup);
-		loadGuiTheme(gui, theme_path);
-		gui->setup("gui");
-		gui->add(mSettings);
-		gui->add(mUniforms);
-		gui_pos = getNextPosition();
-		mGui.push_back(gui);
-
-
-		gui.reset(new ofxGuiGroup);
-		loadGuiTheme(gui, theme_path);
 		ofParameterGroup infos;
-		infos.setName("hot key");
-		infos.add(ofParameter<string>().set("ESC", "exit"));
-		infos.add(ofParameter<string>().set("F1", "gui"));
-		infos.add(ofParameter<string>().set("F5", "reload shaders"));
-		infos.add(ofParameter<string>().set("F11", "fullscreen"));
-		infos.add(ofParameter<string>().set("S", "save settings"));
-		infos.add(ofParameter<string>().set("L", "load settings"));
+		infos.setName("informations");
+		infos.add(g_total_mem.set("total_memory", ""));
+		infos.add(g_avail_mem.set("avail_memory", ""));
+		infos.add(g_used_mem.set("used_memory", ""));
 		infos.setSerializable(false);
-		gui->setup("info");
-		gui->add(infos);
-		gui->setPosition(gui_pos);
-		gui_pos = getNextPosition();
-		mGui.push_back(gui);
+		gui.add(infos);
 
+		ofParameterGroup g_settings;
+		g_settings.setName("settings");
+		g_settings.add(g_threshold.set("threshold", 0.5f, 0, 1));
+		gui.add(g_settings);
 
-		for (auto& g : mGui)
-		{
-			g->loadFromFile(getGuiFilename(g));
-			g->saveToFile(getGuiFilename(g));
-		}
-			
+		g_uniforms.setName("uniforms");
+		g_uniforms.add(uTimeStep.set("uTimeStep", 1.0f / 60.0f, 0.0f, 1.0f / 30.0f));
+		uTimeStep.setSerializable(false);
+		g_uniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
+		uElapsedTime.setSerializable(false);
+		g_uniforms.add(uTimeValue.set("uTimeValue", 0, 0, 1));
+		uTimeValue.setSerializable(false);
+		gui.add(g_uniforms);
+
+		gui.minimizeAll();
+		gui.loadFromFile(gui_filename);
     }
 	
 
@@ -86,17 +71,36 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
 	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
-	uDeltaTime = ofGetElapsedTimef() - uElapsedTime;
-	uElapsedTime = ofGetElapsedTimef();
+
+	// update gui params
+	{
+		GLint total_mem_kb = 0;
+		glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total_mem_kb);
+		GLint cur_avail_mem_kb = 0;
+		glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
+		float used_mem = float(total_mem_kb - cur_avail_mem_kb) * 100 / total_mem_kb;
+		g_total_mem.set(ofVAArgsToString(" %u kb", total_mem_kb));
+		g_avail_mem.set(ofVAArgsToString(" %u kb", cur_avail_mem_kb));
+		g_used_mem.set(ofVAArgsToString(" %2.2f%%", used_mem));
+
+		uTimeStep = ofGetElapsedTimef() - uElapsedTime;
+		uElapsedTime = ofGetElapsedTimef();
+		int interval = 100000;
+		float value = ofGetElapsedTimeMillis() % interval / float(interval);
+		uTimeValue = sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
+	}
 	
-	mFbo->begin();
-	auto viewport = ofGetCurrentViewport();
-	ofClear(0);
-    mShader->begin();
-    mShader->setUniforms(mUniforms);
-	drawRectangle(viewport);
-    mShader->end();
-	mFbo->end();
+	// update main fbo
+	{
+		fbo.begin();
+		auto viewport = ofGetCurrentViewport();
+		ofClear(0);
+		shader.begin();
+		shader.setUniforms(g_uniforms);
+		drawRectangle(viewport);
+		shader.end();
+		fbo.end();
+	}
 }
 
 //--------------------------------------------------------------
@@ -104,15 +108,14 @@ void ofApp::draw(){
 	ofClear(0);
 	auto viewport = ofGetCurrentViewport();
 	
-	auto rect = getCenteredRect(mFbo->getWidth(), mFbo->getHeight(), viewport.width, viewport.height);
-	mFbo->draw(rect);
+	auto rect = getCenteredRect(fbo.getWidth(), fbo.getHeight(), viewport.width, viewport.height);
+	fbo.draw(rect);
 
-	if (bDebugVisible)
+	// draw debug things
+	if (is_debug_visible)
 	{
-		for (auto& gui : mGui)
-			gui->draw();
+		gui.draw();
 	}
-		
 }
 
 //--------------------------------------------------------------
@@ -136,7 +139,7 @@ void ofApp::keyPressed(int key){
 	switch (key)
 	{
 	case OF_KEY_F1:
-		bDebugVisible = !bDebugVisible;
+		is_debug_visible = !is_debug_visible;
 		break;
 	case OF_KEY_F5:
 		loadShaders();
@@ -145,10 +148,10 @@ void ofApp::keyPressed(int key){
 		toggleFullscreen();
 		break;
 	case 's':
-		for (auto& g : mGui) g->saveToFile(getGuiFilename(g));
+		gui.saveToFile(gui_filename);
 		break;
 	case 'l':
-		for (auto& g : mGui) g->loadFromFile(getGuiFilename(g));
+		gui.loadFromFile(gui_filename);
 		break;
 	}
 }
@@ -205,7 +208,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 ///////////////////////////////////////////////////////////////
 
-void ofApp::loadGuiTheme(ofxGuiGroupRef gui, string path)
+void ofApp::loadGuiTheme(ofxGuiGroup* gui, string path)
 {
 	ofXml xml;
 	if (!xml.load(path))
@@ -244,44 +247,14 @@ void ofApp::loadGuiTheme(ofxGuiGroupRef gui, string path)
 	}
 }
 
-string ofApp::getGuiFilename(ofxGuiGroupRef gui)
-{
-	return ofVAArgsToString("settings/%s_setting.xml", gui->getName().c_str());
-}
-
-ofShaderRef ofApp::autoLoader(string s1, string s2, string s3)
-{
-	int count = !s2.empty() + !s3.empty();
-	bool isComputeShader = false;
-
-	ofShader glsl;
-	if (s2.empty() && s3.empty())
-	{
-		glsl.setupShaderFromFile(GL_COMPUTE_SHADER, s1);
-		isComputeShader = true;
-	}
-	else if (s3.empty())
-	{
-		glsl.setupShaderFromFile(GL_VERTEX_SHADER, s1);
-		glsl.setupShaderFromFile(GL_FRAGMENT_SHADER, s2);
-	}
-	else
-	{
-		glsl.setupShaderFromFile(GL_VERTEX_SHADER, s1);
-		glsl.setupShaderFromFile(GL_FRAGMENT_SHADER, s2);
-		glsl.setupShaderFromFile(GL_GEOMETRY_SHADER, s3);
-	}
-	glsl.linkProgram();
-
-	if (glsl.getUniformLocation("modelViewProjectionMatrix") < 0 && !isComputeShader) return nullptr;
-	else return make_shared<ofShader>(glsl);
-}
-
 void ofApp::loadShaders()
 {
 	ofLog(OF_LOG_NOTICE, "%s load shaders", ofGetTimestampString("%H:%M:%S").c_str());
 
-	mShader = autoLoader("shaders/basic.vert", "shaders/basic.frag");
+	shader.unload();
+	shader.setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
+	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
+	shader.linkProgram();
 }
 
 void ofApp::drawRectangle(float x, float y, float w, float h)
