@@ -97,7 +97,7 @@ void ofApp::update(){
 		ofClear(0);
 		shader.begin();
 		shader.setUniforms(g_uniforms);
-		drawRectangle(viewport);
+		//drawRectangle(viewport);
 		shader.end();
 		fbo.end();
 	}
@@ -110,6 +110,9 @@ void ofApp::draw(){
 	
 	auto rect = getCenteredRect(fbo.getWidth(), fbo.getHeight(), viewport.width, viewport.height);
 	fbo.draw(rect);
+
+
+	logger.draw();
 
 	// draw debug things
 	if (is_debug_visible)
@@ -135,24 +138,36 @@ void ofApp::keyPressed(int key){
 			ofSetWindowPosition(pos.x, pos.y);
 		}
 	};
-		
+	
+	string text = "";
+
 	switch (key)
 	{
 	case OF_KEY_F1:
 		is_debug_visible = !is_debug_visible;
+		text = "toggle debug";
 		break;
 	case OF_KEY_F5:
 		loadShaders();
+		text = "load shaders";
 		break;
 	case OF_KEY_F11:
 		toggleFullscreen();
+		text = "toggle full screen";
 		break;
 	case 's':
 		gui.saveToFile(gui_filename);
+		text = "save gui settings";
 		break;
 	case 'l':
 		gui.loadFromFile(gui_filename);
+		text = "load gui settings";
 		break;
+	}
+
+	if (!text.empty())
+	{
+		logger << text << endl;
 	}
 }
 

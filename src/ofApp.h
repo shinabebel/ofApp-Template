@@ -2,12 +2,9 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
+#include "Log.h"
 
 //#define SHIPPING
-
-using ofShaderRef = std::shared_ptr<ofShader>;
-using ofFboRef = std::shared_ptr<ofFbo>;
-using ofxGuiGroupRef = std::shared_ptr<ofxGuiGroup>;
 
 class ofApp : public ofBaseApp{
 
@@ -57,6 +54,8 @@ private:
 		FBO_HEIGHT = 1080
 	};
 	
+	Log logger;
+
 	bool is_debug_visible = true;
 	const string gui_filename = "settings/gui_setting.xml";
 	ofxGuiGroup gui;
@@ -78,3 +77,5 @@ private:
 	ofFbo fbo;
 	ofShader shader;
 };
+
+
