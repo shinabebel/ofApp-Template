@@ -165,10 +165,7 @@ void ofApp::keyPressed(int key){
 		break;
 	}
 
-	if (!text.empty())
-	{
-		logger << text << endl;
-	}
+	if (!text.empty()) logger << text << endl;
 }
 
 //--------------------------------------------------------------
