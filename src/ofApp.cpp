@@ -20,6 +20,8 @@ void ofApp::setup(){
 
 	{
 		ofLog(OF_LOG_NOTICE, "application start with resolution: %u x %u", ofGetWidth(), ofGetHeight());
+
+		pixel_saver = PixelSaver::create();
 	}
 	
 	// allocate fbo
@@ -28,7 +30,7 @@ void ofApp::setup(){
         s.width = FBO_WIDTH;
 		s.height = FBO_HEIGHT;
         s.useDepth = true;
-        s.colorFormats.emplace_back(GL_RGBA);
+		s.colorFormats = { GL_RGBA };
         
         fbo.allocate(s);
     }
@@ -65,7 +67,7 @@ void ofApp::setup(){
     }
 	
 
-	loadShaders();
+	reset();
 }
 
 //--------------------------------------------------------------
@@ -127,20 +129,8 @@ void ofApp::exit() {
 }
 
 //--------------------------------------------------------------
-void ofApp::keyPressed(int key){
-	auto toggleFullscreen = [&]()
-	{
-		ofToggleFullscreen();
-		if (!(ofGetWindowMode() == OF_FULLSCREEN))
-		{
-			ofSetWindowShape(WIDTH, HEIGHT);
-			auto pos = ofVec2f(ofGetScreenWidth() - WIDTH, ofGetScreenHeight() - HEIGHT) * 0.5f;
-			ofSetWindowPosition(pos.x, pos.y);
-		}
-	};
-	
+void ofApp::keyPressed(int key){	
 	string text = "";
-
 	switch (key)
 	{
 	case OF_KEY_F1:
@@ -148,11 +138,11 @@ void ofApp::keyPressed(int key){
 		text = "toggle debug";
 		break;
 	case OF_KEY_F5:
-		loadShaders();
-		text = "load shaders";
+		reset();
+		text = "reset";
 		break;
 	case OF_KEY_F11:
-		toggleFullscreen();
+		toggleFullscreen(WIDTH, HEIGHT);
 		text = "toggle full screen";
 		break;
 	case 's':
@@ -162,6 +152,10 @@ void ofApp::keyPressed(int key){
 	case 'l':
 		gui.loadFromFile(gui_filename);
 		text = "load gui settings";
+		break;
+	case 'p':
+		pixel_saver->saveFbo(fbo);
+		text = "save pixels";
 		break;
 	}
 
@@ -220,75 +214,12 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 ///////////////////////////////////////////////////////////////
 
-void ofApp::loadGuiTheme(ofxGuiGroup* gui, string path)
+void ofApp::reset()
 {
-	ofXml xml;
-	if (!xml.load(path))
-	{
-		ofLog(OF_LOG_WARNING, "fail to load gui theme settings from %s\n", path.c_str());
-		return;
-	}
-
-	gui->loadFont(xml.getValue("FONT_NAME"), xml.getIntValue("FONT_SIZE"));
-	gui->setDefaultTextPadding(xml.getIntValue("TEXT_PADDING"));
-	gui->setDefaultHeight(xml.getIntValue("HEIGHT"));
-
-	string theme_name = xml.getValue("THEME_NAME");
-	if (xml.exists(theme_name))
-	{
-		xml.setTo(theme_name);
-		auto hexHeaderBackgroundColor = ofColor::fromHex(ofHexToInt(xml.getValue("HeaderBackgroundColor")));
-		auto hexBackgroundColor = ofColor::fromHex(ofHexToInt(xml.getValue("BackgroundColor")));
-		auto hexBorderColor = ofColor::fromHex(ofHexToInt(xml.getValue("BorderColor")));
-		auto hexFillColor = ofColor::fromHex(ofHexToInt(xml.getValue("FillColor")));
-		auto hexTextColor = ofColor::fromHex(ofHexToInt(xml.getValue("TextColor")));
-		gui->setHeaderBackgroundColor(hexHeaderBackgroundColor);
-		gui->setBackgroundColor(hexBackgroundColor);
-		gui->setBorderColor(hexBorderColor);
-		gui->setFillColor(hexFillColor);
-		gui->setTextColor(hexTextColor);
-		gui->setDefaultHeaderBackgroundColor(hexHeaderBackgroundColor);
-		gui->setDefaultBackgroundColor(hexBackgroundColor);
-		gui->setDefaultBorderColor(hexBorderColor);
-		gui->setDefaultFillColor(hexFillColor);
-		gui->setDefaultTextColor(hexTextColor);
-	}
-	else
-	{
-		ofLog(OF_LOG_WARNING, "gui theme [%s] is missing.\n", theme_name.c_str());
-	}
-}
-
-void ofApp::loadShaders()
-{
-	ofLog(OF_LOG_NOTICE, "%s load shaders", ofGetTimestampString("%H:%M:%S").c_str());
+	ofLog(OF_LOG_NOTICE, "%s reset", ofGetTimestampString("%H:%M:%S").c_str());
 
 	shader.unload();
 	shader.setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
 	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
 	shader.linkProgram();
-}
-
-void ofApp::drawRectangle(float x, float y, float w, float h)
-{
-	static ofVbo vbo;
-	vector<ofVec3f> vertices = { ofVec3f(x, y, 0), ofVec3f(x + w, y, 0), ofVec3f(x + w, y + h, 0) , ofVec3f(x, y + h, 0) };
-	vector<ofFloatColor> colors(4, ofGetStyle().color);
-	if (!vbo.getIsAllocated())
-	{
-		vector<ofVec2f> texCoords = { ofVec2f(0, 0), ofVec2f(1, 0), ofVec2f(1, 1), ofVec2f(0, 1) };
-		vector<ofVec3f> normals(4, ofVec3f(0, 0, 1));
-		vector<ofIndexType> indices = { 0, 2, 1, 0, 3, 2 };
-		vbo.setVertexData(&vertices[0].x, 3, vertices.size(), GL_DYNAMIC_DRAW);
-		vbo.setColorData(&colors[0].r, colors.size(), GL_DYNAMIC_DRAW);
-		vbo.setTexCoordData(&texCoords[0].x, texCoords.size(), GL_STATIC_DRAW);
-		vbo.setNormalData(&normals[0].x, normals.size(), GL_STATIC_DRAW);
-		vbo.setIndexData(&indices[0], indices.size(), GL_STATIC_DRAW);
-	}
-	else
-	{
-		vbo.updateVertexData(&vertices[0].x, vertices.size());
-		vbo.updateColorData(&colors[0].r, colors.size());
-	}
-	vbo.drawElements(GL_TRIANGLES, vbo.getNumIndices());
 }

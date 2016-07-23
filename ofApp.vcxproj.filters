@@ -77,7 +77,7 @@
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxBaseGui.h">
       <Filter>addons\ofxGui\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Log.h">
+    <ClInclude Include="src\Utilities.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

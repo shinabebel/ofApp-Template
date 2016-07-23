@@ -2,7 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
-#include "Log.h"
+#include "Utilities.h"
 
 //#define SHIPPING
 
@@ -26,25 +26,10 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
-	void loadGuiTheme(ofxGuiGroup* gui, string path);
-	void loadShaders();
+	void reset();
 	
-	void drawRectangle(float x, float y, float w, float h);
-	void drawRectangle(ofVec2f pos, float w, float h) { drawRectangle(pos.x, pos.y, w, h); }
-	void drawRectangle(const ofRectangle& rect) { drawRectangle(rect.x, rect.y, rect.width, rect.height); }
-
-protected:
-	ofRectangle getCenteredRect(int srcWidth, int srcHeight, int otherWidth, int otherHeight, bool isFill = true)
-	{
-		ofRectangle other(0, 0, otherWidth, otherHeight);
-		ofRectangle result; result.setFromCenter(other.getCenter(), srcWidth, srcHeight);
-		float scaleBy = other.getHeight() / result.getHeight();
-		auto aspectAspect = result.getAspectRatio() / other.getAspectRatio();
-		if ((isFill && aspectAspect <= 1.0f) || (!isFill && aspectAspect >= 1.0f))
-			scaleBy = other.getWidth() / result.getWidth();
-		result.scaleFromCenter(scaleBy);
-		return result;
-	}
+	
+	
 
 private:
 	enum {
@@ -54,7 +39,9 @@ private:
 		FBO_HEIGHT = 1080
 	};
 	
+	// utilities
 	Log logger;
+	PixelSaverRef pixel_saver;
 
 	bool is_debug_visible = true;
 	const string gui_filename = "settings/gui_setting.xml";
