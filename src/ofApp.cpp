@@ -54,7 +54,7 @@ void ofApp::setup(){
 		gui.add(g_settings);
 
 		g_uniforms.setName("uniforms");
-		g_uniforms.add(uTimeStep.set("uTimeStep", 1.0f / 60.0f, 0.0f, 1.0f / 30.0f));
+		g_uniforms.add(uTimeStep.set("uTimeStep", 1.0f / 120.0f, 0.0f, 1.0f / 30.0f));
 		uTimeStep.setSerializable(false);
 		g_uniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
 		uElapsedTime.setSerializable(false);
