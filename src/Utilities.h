@@ -31,14 +31,19 @@ namespace
 	void drawRectangle(float x, float y, float w, float h)
 	{
 		static ofVbo vbo;
-		vector<ofVec3f> vertices = { ofVec3f(x, y, 0), ofVec3f(x + w, y, 0), ofVec3f(x + w, y + h, 0) , ofVec3f(x, y + h, 0) };
-		vector<ofFloatColor> colors(4, ofGetStyle().color);
+		static vector<ofVec4f> vertices(4);
+		vertices[0].set(x, y, 0, 1);
+		vertices[1].set(x + w, y, 0, 1);
+		vertices[2].set(x + w, y + h, 0, 1);
+		vertices[3].set(x, y + h, 0, 1);
+		static vector<ofFloatColor> colors(4);
+		colors.assign(4, ofGetStyle().color);
 		if (!vbo.getIsAllocated())
 		{
 			vector<ofVec2f> texCoords = { ofVec2f(0, 0), ofVec2f(1, 0), ofVec2f(1, 1), ofVec2f(0, 1) };
 			vector<ofVec3f> normals(4, ofVec3f(0, 0, 1));
 			vector<ofIndexType> indices = { 0, 2, 1, 0, 3, 2 };
-			vbo.setVertexData(&vertices[0].x, 3, vertices.size(), GL_DYNAMIC_DRAW);
+			vbo.setVertexData(&vertices[0].x, 4, vertices.size(), GL_DYNAMIC_DRAW);
 			vbo.setColorData(&colors[0].r, colors.size(), GL_DYNAMIC_DRAW);
 			vbo.setTexCoordData(&texCoords[0].x, texCoords.size(), GL_STATIC_DRAW);
 			vbo.setNormalData(&normals[0].x, normals.size(), GL_STATIC_DRAW);
@@ -92,6 +97,28 @@ namespace
 		{
 			ofLog(OF_LOG_WARNING, "gui theme [%s] is missing.\n", theme_name.c_str());
 		}
+	}
+
+	void bindUniformBlock(const ofShader& shader, const string& name, GLuint bindingPoint)
+	{
+		GLuint prog = shader.getProgram();
+		GLuint block_index = glGetUniformBlockIndex(prog, name.c_str());
+		glUniformBlockBinding(prog, block_index, bindingPoint);
+	}
+
+	std::string toStringWithCommas(int num)
+	{
+		string sign = (ofSign(num) > 0) ? "" : "-";
+		num = ABS(num);
+		string res;
+		do
+		{
+			int width = (num / 1000) ? 3 : 0;
+			res = ofToString(num % 1000, 0, width, '0') + res;
+			num /= 1000;
+			if (num) res = "," + res;
+		} while (num != 0);
+		return sign + res;
 	}
 }
 

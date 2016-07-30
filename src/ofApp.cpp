@@ -48,25 +48,26 @@ void ofApp::setup(){
 		infos.setSerializable(false);
 		gui.add(infos);
 
+		ofParameterGroup g_uniforms;
+		g_uniforms.setName("uniforms");
+		g_uniforms.add(time_step.set("time_step", 1.0f / 120.0f, 0.0f, 1.0f / 30.0f));
+		time_step.setSerializable(false);
+		g_uniforms.add(elapsed_time.set("elapsed_time", ofGetElapsedTimef()));
+		elapsed_time.setSerializable(false);
+		g_uniforms.add(time_value.set("time_value", 0, 0, 1));
+		time_value.setSerializable(false);
+		gui.add(g_uniforms);
+
+		gui.minimizeAll();
+
 		ofParameterGroup g_settings;
 		g_settings.setName("settings");
 		g_settings.add(g_threshold.set("threshold", 0.5f, 0, 1));
 		gui.add(g_settings);
 
-		g_uniforms.setName("uniforms");
-		g_uniforms.add(uTimeStep.set("uTimeStep", 1.0f / 60.0f, 0.0f, 1.0f / 30.0f));
-		uTimeStep.setSerializable(false);
-		g_uniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
-		uElapsedTime.setSerializable(false);
-		g_uniforms.add(uTimeValue.set("uTimeValue", 0, 0, 1));
-		uTimeValue.setSerializable(false);
-		gui.add(g_uniforms);
-
-		gui.minimizeAll();
 		gui.loadFromFile(gui_filename);
     }
 	
-
 	reset();
 }
 
@@ -80,16 +81,19 @@ void ofApp::update(){
 		glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total_mem_kb);
 		GLint cur_avail_mem_kb = 0;
 		glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
-		float used_mem = float(total_mem_kb - cur_avail_mem_kb) * 100 / total_mem_kb;
-		g_total_mem.set(ofVAArgsToString(" %u kb", total_mem_kb));
-		g_avail_mem.set(ofVAArgsToString(" %u kb", cur_avail_mem_kb));
+		float used_mem = 100.0f * (total_mem_kb - cur_avail_mem_kb) / total_mem_kb;
+		g_total_mem.set(" " + toStringWithCommas(total_mem_kb) + " kb" );
+		g_avail_mem.set(" " + toStringWithCommas(cur_avail_mem_kb) + " kb");
 		g_used_mem.set(ofVAArgsToString(" %2.2f%%", used_mem));
 
-		uTimeStep = ofGetElapsedTimef() - uElapsedTime;
-		uElapsedTime = ofGetElapsedTimef();
+		float current_time = ofGetElapsedTimef();
+		time_step = ofClamp(current_time - elapsed_time, time_step.getMin(), time_step.getMax());
+		elapsed_time = current_time;
 		int interval = 100000;
 		float value = ofGetElapsedTimeMillis() % interval / float(interval);
-		uTimeValue = sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
+		time_value = sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
+
+		updateUbo();
 	}
 	
 	// update main fbo
@@ -97,10 +101,13 @@ void ofApp::update(){
 		fbo.begin();
 		auto viewport = ofGetCurrentViewport();
 		ofClear(0);
+
+		ubo.bindBase(GL_UNIFORM_BUFFER, 0);
 		shader.begin();
-		shader.setUniforms(g_uniforms);
 		//drawRectangle(viewport);
 		shader.end();
+		ubo.unbindBase(GL_UNIFORM_BUFFER, 0);
+
 		fbo.end();
 	}
 }
@@ -110,9 +117,14 @@ void ofApp::draw(){
 	ofClear(0);
 	auto viewport = ofGetCurrentViewport();
 	
-	auto rect = getCenteredRect(fbo.getWidth(), fbo.getHeight(), viewport.width, viewport.height);
-	fbo.draw(rect);
-
+	{
+		auto rect = getCenteredRect(fbo.getWidth(), fbo.getHeight(), viewport.width, viewport.height, false);
+		auto& tex = fbo.getTexture();
+		tex.bind();
+		drawRectangle(rect);
+		tex.unbind();
+	}
+	
 
 	logger.draw();
 
@@ -222,4 +234,5 @@ void ofApp::reset()
 	shader.setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
 	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
 	shader.linkProgram();
+	bindUniformBlock(shader, "uniform_block", 0);
 }

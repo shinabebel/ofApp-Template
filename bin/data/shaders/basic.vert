@@ -1,6 +1,6 @@
 #pragma include <header.glsl>
 
-layout (location = 0) in vec3 position;
+layout (location = 0) in vec4 position;
 layout (location = 1) in vec4 color;
 layout (location = 2) in vec3 normal;
 layout (location = 3) in vec2 texCoord;
@@ -18,10 +18,10 @@ out block {
 
 void main()
 {	
-	Out.fragPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+	Out.fragPos = (modelViewMatrix * position).xyz;
 	Out.color = color;
 	Out.texCoord = texCoord;
 	Out.normal = mat3(transpose(inverse(modelViewMatrix))) * normal; 
 
-	gl_Position = modelViewProjectionMatrix * vec4(position, 1.0);
+	gl_Position = modelViewProjectionMatrix * position;
 }
