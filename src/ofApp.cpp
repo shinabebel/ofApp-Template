@@ -48,20 +48,16 @@ void ofApp::setup(){
 		infos.setSerializable(false);
 		gui.add(infos);
 
-		ofParameterGroup g_uniforms;
-		g_uniforms.setName("uniforms");
-		g_uniforms.add(time_step.set("time_step", 1.0f / 120.0f, 0.0f, 1.0f / 30.0f));
-		time_step.setSerializable(false);
-		g_uniforms.add(elapsed_time.set("elapsed_time", ofGetElapsedTimef()));
-		elapsed_time.setSerializable(false);
-		g_uniforms.add(time_value.set("time_value", 0, 0, 1));
-		time_value.setSerializable(false);
-		gui.add(g_uniforms);
-
 		gui.minimizeAll();
 
 		ofParameterGroup g_settings;
 		g_settings.setName("settings");
+		g_settings.add(time_step.set("time_step", 1.0f / 120.0f, 0.0f, 1.0f / 30.0f));
+		time_step.setSerializable(false);
+		g_settings.add(elapsed_time.set("elapsed_time", ofGetElapsedTimef()));
+		elapsed_time.setSerializable(false);
+		g_settings.add(time_value.set("time_value", 0, 0, 1));
+		time_value.setSerializable(false);
 		g_settings.add(g_threshold.set("threshold", 0.5f, 0, 1));
 		gui.add(g_settings);
 
@@ -75,26 +71,8 @@ void ofApp::setup(){
 void ofApp::update(){
 	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
 
-	// update gui params
-	{
-		GLint total_mem_kb = 0;
-		glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total_mem_kb);
-		GLint cur_avail_mem_kb = 0;
-		glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
-		float used_mem = 100.0f * (total_mem_kb - cur_avail_mem_kb) / total_mem_kb;
-		g_total_mem.set(" " + toStringWithCommas(total_mem_kb) + " kb" );
-		g_avail_mem.set(" " + toStringWithCommas(cur_avail_mem_kb) + " kb");
-		g_used_mem.set(ofVAArgsToString(" %2.2f%%", used_mem));
-
-		float current_time = ofGetElapsedTimef();
-		time_step = ofClamp(current_time - elapsed_time, time_step.getMin(), time_step.getMax());
-		elapsed_time = current_time;
-		int interval = 100000;
-		float value = ofGetElapsedTimeMillis() % interval / float(interval);
-		time_value = sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
-
-		updateUbo();
-	}
+	// update params and ubo
+	updateParams();
 	
 	// update main fbo
 	{
@@ -235,4 +213,41 @@ void ofApp::reset()
 	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
 	shader.linkProgram();
 	bindUniformBlock(shader, "uniform_block", 0);
+}
+
+void ofApp::updateParams()
+{
+	// update gui params
+	GLint total_mem_kb = 0;
+	glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total_mem_kb);
+	GLint cur_avail_mem_kb = 0;
+	glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
+	float used_mem = 100.0f * (total_mem_kb - cur_avail_mem_kb) / total_mem_kb;
+	g_total_mem.set(" " + toStringWithCommas(total_mem_kb) + " kb");
+	g_avail_mem.set(" " + toStringWithCommas(cur_avail_mem_kb) + " kb");
+	g_used_mem.set(ofVAArgsToString(" %2.2f%%", used_mem));
+
+	float current_time = ofGetElapsedTimef();
+	time_step = ofClamp(current_time - elapsed_time, time_step.getMin(), time_step.getMax());
+	elapsed_time = current_time;
+	int interval = 100000;
+	float value = ofGetElapsedTimeMillis() % interval / float(interval);
+	time_value = sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
+
+	// update ubo
+	static UniformBlock ub;
+	ub.time_step = time_step;
+	ub.elapsed_time = elapsed_time;
+	ub.time_value = time_value;
+	ub.threshold = g_threshold;
+
+	if (!ubo.isAllocated())
+	{
+		ubo.allocate();
+		ubo.setData(sizeof(UniformBlock), &ub, GL_DYNAMIC_DRAW);
+	}
+	else
+	{
+		ubo.updateData(sizeof(UniformBlock), &ub);
+	}
 }

@@ -27,9 +27,7 @@ public:
 	void gotMessage(ofMessage msg);
 
 	void reset();
-	
-	
-	
+	void updateParameters();
 
 private:
 	enum {
@@ -57,56 +55,19 @@ private:
 	ofParameter<string> g_used_mem;
 
 	// settings
-	ofParameter<float> g_threshold;
-
-	// uniforms
 	ofParameter<float> time_step;
 	ofParameter<float> elapsed_time;
 	ofParameter<float> time_value;
+	ofParameter<float> g_threshold;
 
 	struct UniformBlock
 	{
 		float time_step;
 		float elapsed_time;
 		float time_value;
-		float a;
-	} uniform_block;
+		float threshold;
+	};
 	ofBufferObject ubo;
-	bool is_uniform_updated = false;
-	
-	void updateUbo()
-	{
-		if (is_uniform_updated) return;
-
-		uniform_block.time_step = time_step;
-		uniform_block.elapsed_time = elapsed_time;
-		uniform_block.time_value = time_value;
-		uniform_block.a = 0.0f;
-		is_uniform_updated = true;
-
-		if (!ubo.isAllocated())
-		{
-			ubo.allocate();
-			ubo.setData(sizeof(UniformBlock), &uniform_block, GL_DYNAMIC_DRAW);
-		}
-		else
-		{
-			ubo.updateData(sizeof(UniformBlock), &uniform_block);
-		}
-	}
-
-	template<typename T>
-	void onUniformChanged(T& t)
-	{
-		is_uniform_updated = false;
-	}
-
-	template<typename T, typename U>
-	void addParameter(ofParameterGroup& group, ofParameter<T>& param, const string& name, const U& value, const U& min, const U& max)
-	{
-		group.add(param.set(name, T(value), T(min), T(max)));
-		param.addListener(this, &ofApp::onUniformChanged<T>);
-	}
 };
 
 

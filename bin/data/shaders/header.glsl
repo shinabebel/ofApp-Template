@@ -9,5 +9,5 @@ layout (std140, binding = 0) uniform uniform_block {
     float time_step;
 	float elapsed_time;
 	float time_value;
-	float a;
+	float threshold;
 };
