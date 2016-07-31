@@ -72,7 +72,7 @@ void ofApp::update(){
 	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
 
 	// update params and ubo
-	updateParams();
+	updateParameters();
 	
 	// update main fbo
 	{
@@ -80,11 +80,9 @@ void ofApp::update(){
 		auto viewport = ofGetCurrentViewport();
 		ofClear(0);
 
-		ubo.bindBase(GL_UNIFORM_BUFFER, 0);
 		shader.begin();
 		//drawRectangle(viewport);
 		shader.end();
-		ubo.unbindBase(GL_UNIFORM_BUFFER, 0);
 
 		fbo.end();
 	}
@@ -215,7 +213,7 @@ void ofApp::reset()
 	bindUniformBlock(shader, "uniform_block", 0);
 }
 
-void ofApp::updateParams()
+void ofApp::updateParameters()
 {
 	// update gui params
 	GLint total_mem_kb = 0;
@@ -245,6 +243,7 @@ void ofApp::updateParams()
 	{
 		ubo.allocate();
 		ubo.setData(sizeof(UniformBlock), &ub, GL_DYNAMIC_DRAW);
+		ubo.bindBase(GL_UNIFORM_BUFFER, 0);
 	}
 	else
 	{
