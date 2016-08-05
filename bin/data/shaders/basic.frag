@@ -1,5 +1,3 @@
-#pragma include <header.glsl>
-
 in block {
 	vec3 fragPos;
 	vec4 color;

@@ -34,12 +34,15 @@ private:
 		WIDTH = 1280,
 		HEIGHT = 720,
 		FBO_WIDTH = 1920,
-		FBO_HEIGHT = 1080
+		FBO_HEIGHT = 1080,
+		WORK_GROUP_SIZE = 1 << 10
 	};
 	
 	// gl
 	ofFbo fbo;
 	ofShader shader;
+	ofShader compute_shader;
+
 
 	// utilities
 	Log logger;
@@ -69,5 +72,6 @@ private:
 	};
 	ofBufferObject ubo;
 };
+
 
 

@@ -1,23 +1,3 @@
-#pragma include <header.glsl>
-
-#define WORK_GROUP_SIZE 1024
-
-struct Particle {
-	vec4 pos;
-	vec4 ppos;
-	vec4 home;
-	vec4 color;
-	vec4 properties;
-};
-
-layout(std140, binding = 0) buffer particle {
-    Particle p[];
-};
-
-
-
-layout(local_size_x = WORK_GROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
-
 void main()
 {
 	uint i = gl_GlobalInvocationID.x;

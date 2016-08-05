@@ -206,21 +206,55 @@ void ofApp::reset()
 {
 	ofLog(OF_LOG_NOTICE, "%s reset", ofGetTimestampString("%H:%M:%S").c_str());
 
-	shader.unload();
-	shader.setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
-	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
-	shader.linkProgram();
-	bindUniformBlock(shader, "uniform_block", 0);
+	int ubo_binding_point = 0;
+	string ubo_name = "uniform_block";
+	string header = ofBufferFromFile("shaders/header.glsl").getText();
+
+	string ubo_layout = ofVAArgsToString(R"(
+layout(std140, binding = %u) uniform %s { 
+	float time_step;
+	float elapsed_time;
+	float time_value;
+	float threshold;
+};
+)", ubo_binding_point, ubo_name.c_str());
+
+	// general shader
+	{
+		string vs = ofBufferFromFile("shaders/basic.vert").getText();
+		string fs = ofBufferFromFile("shaders/basic.frag").getText();
+		shader.unload();
+		shader.setupShaderFromSource(GL_VERTEX_SHADER, header + ubo_layout + vs);
+		shader.setupShaderFromSource(GL_FRAGMENT_SHADER, header + ubo_layout + fs);
+		shader.linkProgram();
+		bindUniformBlock(shader, ubo_name, ubo_binding_point);
+	}
+
+	// compute shader
+	{
+		string ssbo_layout = ofVAArgsToString(R"(
+layout(std430, binding = %u) buffer %s { 
+	Particle particle[];
+};
+layout(local_size_x = %u, local_size_y = %u, local_size_z = %u) in;
+)", 0, "particle_buffer", WORK_GROUP_SIZE, 1, 1);
+		string cs = ofBufferFromFile("shaders/basic.comp").getText();
+		compute_shader.unload();
+		compute_shader.setupShaderFromSource(GL_COMPUTE_SHADER, header + ubo_layout + ssbo_layout + cs);
+		compute_shader.linkProgram();
+		bindUniformBlock(compute_shader, ubo_name, ubo_binding_point);
+	}
 }
 
 void ofApp::updateParameters()
 {
 	// update gui params
-	GLint total_mem_kb = 0;
+	static GLint total_mem_kb = 0;
 	glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total_mem_kb);
-	GLint cur_avail_mem_kb = 0;
+	static GLint cur_avail_mem_kb = 0;
 	glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
-	float used_mem = 100.0f * (total_mem_kb - cur_avail_mem_kb) / total_mem_kb;
+	static float used_mem = 0.0f;
+	used_mem = (total_mem_kb > 0) ? (100.0f * (total_mem_kb - cur_avail_mem_kb) / total_mem_kb) : 0.0f;
 	g_total_mem.set(" " + toStringWithCommas(total_mem_kb) + " kb");
 	g_avail_mem.set(" " + toStringWithCommas(cur_avail_mem_kb) + " kb");
 	g_used_mem.set(ofVAArgsToString(" %2.2f%%", used_mem));
