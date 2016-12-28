@@ -2,7 +2,9 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
-#include "Utilities.h"
+
+#include "Log.h"
+#include "PixelSaver.h"
 
 //#define SHIPPING
 
@@ -45,8 +47,8 @@ private:
 
 
 	// utilities
-	Log logger;
-	PixelSaverRef pixel_saver;
+	generative::Log logger;
+	generative::PixelSaverRef pixel_saver;
 
 	bool is_debug_visible = true;
 	const string gui_filename = "settings/gui_setting.xml";
@@ -63,14 +65,6 @@ private:
 	ofParameter<float> time_value;
 	ofParameter<float> g_threshold;
 
-	struct UniformBlock
-	{
-		float time_step;
-		float elapsed_time;
-		float time_value;
-		float threshold;
-	};
-	ofBufferObject ubo;
 };
 
 

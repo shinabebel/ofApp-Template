@@ -1,4 +1,7 @@
 #include "ofApp.h"
+#include "Utilities.h"
+
+using namespace generative;
 
 #define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX 0x9048
 #define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX 0x9049
@@ -38,7 +41,8 @@ void ofApp::setup(){
 	// setup gui
     {
 		loadGuiTheme(&gui, "fonts/theme.xml");
-		gui.setup("gui");
+		gui.setup();
+		gui.setName("gui");
 
 		ofParameterGroup infos;
 		infos.setName("informations");
@@ -206,44 +210,6 @@ void ofApp::reset()
 {
 	ofLog(OF_LOG_NOTICE, "%s reset", ofGetTimestampString("%H:%M:%S").c_str());
 
-	int ubo_binding_point = 0;
-	string ubo_name = "uniform_block";
-	string header = ofBufferFromFile("shaders/header.glsl").getText();
-
-	string ubo_layout = ofVAArgsToString(R"(
-layout(std140, binding = %u) uniform %s { 
-	float time_step;
-	float elapsed_time;
-	float time_value;
-	float threshold;
-};
-)", ubo_binding_point, ubo_name.c_str());
-
-	// general shader
-	{
-		string vs = ofBufferFromFile("shaders/basic.vert").getText();
-		string fs = ofBufferFromFile("shaders/basic.frag").getText();
-		shader.unload();
-		shader.setupShaderFromSource(GL_VERTEX_SHADER, header + ubo_layout + vs);
-		shader.setupShaderFromSource(GL_FRAGMENT_SHADER, header + ubo_layout + fs);
-		shader.linkProgram();
-		bindUniformBlock(shader, ubo_name, ubo_binding_point);
-	}
-
-	// compute shader
-	{
-		string ssbo_layout = ofVAArgsToString(R"(
-layout(std430, binding = %u) buffer %s { 
-	Particle particle[];
-};
-layout(local_size_x = %u, local_size_y = %u, local_size_z = %u) in;
-)", 0, "particle_buffer", WORK_GROUP_SIZE, 1, 1);
-		string cs = ofBufferFromFile("shaders/basic.comp").getText();
-		compute_shader.unload();
-		compute_shader.setupShaderFromSource(GL_COMPUTE_SHADER, header + ubo_layout + ssbo_layout + cs);
-		compute_shader.linkProgram();
-		bindUniformBlock(compute_shader, ubo_name, ubo_binding_point);
-	}
 }
 
 void ofApp::updateParameters()
@@ -266,21 +232,4 @@ void ofApp::updateParameters()
 	float value = ofGetElapsedTimeMillis() % interval / float(interval);
 	time_value = sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
 
-	// update ubo
-	static UniformBlock ub;
-	ub.time_step = time_step;
-	ub.elapsed_time = elapsed_time;
-	ub.time_value = time_value;
-	ub.threshold = g_threshold;
-
-	if (!ubo.isAllocated())
-	{
-		ubo.allocate();
-		ubo.setData(sizeof(UniformBlock), &ub, GL_DYNAMIC_DRAW);
-		ubo.bindBase(GL_UNIFORM_BUFFER, 0);
-	}
-	else
-	{
-		ubo.updateData(sizeof(UniformBlock), &ub);
-	}
 }
