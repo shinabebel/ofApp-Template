@@ -55,9 +55,9 @@ private:
 	ofxGuiGroup gui;
 
 	// infos
-	ofParameter<string> g_total_mem;
-	ofParameter<string> g_avail_mem;
-	ofParameter<string> g_used_mem;
+	ofParameter<string> memory_total;
+	ofParameter<string> memory_avail;
+	ofParameter<string> memory_used;
 
 	// settings
 	ofParameter<float> time_step;

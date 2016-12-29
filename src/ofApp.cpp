@@ -46,9 +46,9 @@ void ofApp::setup(){
 
 		ofParameterGroup infos;
 		infos.setName("informations");
-		infos.add(g_total_mem.set("total_memory", ""));
-		infos.add(g_avail_mem.set("avail_memory", ""));
-		infos.add(g_used_mem.set("used_memory", ""));
+		infos.add(memory_total.set("total", ""));
+		infos.add(memory_avail.set("available", ""));
+		infos.add(memory_used.set("used", ""));
 		infos.setSerializable(false);
 		gui.add(infos);
 		
@@ -176,9 +176,9 @@ void ofApp::updateParameters()
 	glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
 	static float used_mem = 0.0f;
 	used_mem = (total_mem_kb > 0) ? (100.0f * (total_mem_kb - cur_avail_mem_kb) / total_mem_kb) : 0.0f;
-	g_total_mem.set(" " + toStringWithCommas(total_mem_kb) + " kb");
-	g_avail_mem.set(" " + toStringWithCommas(cur_avail_mem_kb) + " kb");
-	g_used_mem.set(ofVAArgsToString(" %2.2f%%", used_mem));
+	memory_total.set(" " + toStringWithCommas(total_mem_kb) + " kb");
+	memory_avail.set(" " + toStringWithCommas(cur_avail_mem_kb) + " kb");
+	memory_used.set(ofVAArgsToString(" %2.2f%%", used_mem));
 
 	float current_time = ofGetElapsedTimef();
 	time_step = ofClamp(current_time - elapsed_time, time_step.getMin(), time_step.getMax());
