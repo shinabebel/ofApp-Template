@@ -3,3 +3,7 @@
 !/bin/data
 /*.sdf
 /.vs
+/*.db
+/*.opendb
+/bin/data/print_screen/*
+/bin/data/shaders/*.backup
