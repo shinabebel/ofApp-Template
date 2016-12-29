@@ -67,8 +67,6 @@ void ofApp::setup(){
 
 	gui.minimizeAll();
 	gui.loadFromFile(gui_filename);
-
-	reset();
 }
 
 //--------------------------------------------------------------
