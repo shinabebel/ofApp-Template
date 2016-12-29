@@ -33,7 +33,7 @@ void ofApp::setup(){
         s.width = FBO_WIDTH;
 		s.height = FBO_HEIGHT;
         s.useDepth = true;
-		s.colorFormats = { GL_RGBA };
+		s.colorFormats = { GL_RGBA8 };
         
         fbo.allocate(s);
     }
@@ -51,9 +51,7 @@ void ofApp::setup(){
 		infos.add(g_used_mem.set("used_memory", ""));
 		infos.setSerializable(false);
 		gui.add(infos);
-
-		gui.minimizeAll();
-
+		
 		ofParameterGroup g_settings;
 		g_settings.setName("settings");
 		g_settings.add(time_step.set("time_step", 1.0f / 120.0f, 0.0f, 1.0f / 30.0f));
@@ -62,12 +60,14 @@ void ofApp::setup(){
 		elapsed_time.setSerializable(false);
 		g_settings.add(time_value.set("time_value", 0, 0, 1));
 		time_value.setSerializable(false);
-		g_settings.add(g_threshold.set("threshold", 0.5f, 0, 1));
 		gui.add(g_settings);
 
-		gui.loadFromFile(gui_filename);
+		
     }
-	
+
+	gui.minimizeAll();
+	gui.loadFromFile(gui_filename);
+
 	reset();
 }
 
@@ -152,51 +152,6 @@ void ofApp::keyPressed(int key){
 	}
 
 	if (!text.empty()) logger << text << endl;
-}
-
-//--------------------------------------------------------------
-void ofApp::keyReleased(int key){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
-
 }
 
 //--------------------------------------------------------------
