@@ -111,6 +111,10 @@ void ofApp::draw(){
 	{
 		gui.draw();
 	}
+
+	ofMatrix4x4().makeRotationMatrix(
+		ofVec3f(), ofVec3f()
+	)
 }
 
 //--------------------------------------------------------------
