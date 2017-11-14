@@ -52,7 +52,8 @@ private:
 
 	bool is_debug_visible = true;
 	const string gui_filename = "settings/gui_setting.xml";
-	ofxGuiGroup gui;
+	//ofxGuiGroup gui;
+	ofxPanel gui;
 
 	// infos
 	ofParameter<string> memory_total;
