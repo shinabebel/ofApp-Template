@@ -3,13 +3,10 @@
 #include "ofMain.h"
 #include "ofxGui.h"
 
-#include "Log.h"
-#include "PixelSaver.h"
+namespace fs = boost::filesystem;
 
-//#define SHIPPING
-
-class ofApp : public ofBaseApp{
-
+class ofApp : public ofBaseApp
+{
 public:
 	void setup();
 	void update();
@@ -46,13 +43,8 @@ private:
 	ofShader compute_shader;
 
 
-	// utilities
-	generative::Log logger;
-	generative::PixelSaverRef pixel_saver;
-
 	bool is_debug_visible = true;
-	const string gui_filename = "settings/gui_setting.xml";
-	//ofxGuiGroup gui;
+	const string gui_filename = "gui_settings.xml";
 	ofxPanel gui;
 
 	// infos

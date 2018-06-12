@@ -1,30 +1,20 @@
 #include "ofApp.h"
-#include "Utilities.h"
-
-using namespace generative;
 
 #define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX 0x9048
 #define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX 0x9049
 
 //--------------------------------------------------------------
-void ofApp::setup(){
+void ofApp::setup()
+{
 	ofSetWindowShape(WIDTH, HEIGHT);
 	ofSetWindowPosition((ofGetScreenWidth() - ofGetWidth()) / 2, (ofGetScreenHeight() - ofGetHeight()) / 2);
 	ofDisableArbTex();
 	ofSetFrameRate(60);
 	//ofSetVerticalSync(true);
 
-#ifdef SHIPPING
-	ofLogToFile(ofVAArgsToString("logs/%s_log.txt", ofGetTimestampString("%Y-%m-%d-%H-%M-%S").c_str()));
-	ofHideCursor();
-	ofToggleFullscreen();
-	is_debug_visible = false;
-#endif
 
 	{
 		ofLog(OF_LOG_NOTICE, "application start with resolution: %u x %u", ofGetWidth(), ofGetHeight());
-
-		pixel_saver = PixelSaver::create();
 	}
 	
 	// allocate fbo
@@ -40,9 +30,7 @@ void ofApp::setup(){
     
 	// setup gui
     {
-		loadGuiTheme(&gui, "fonts/theme.xml");
-		gui.setup();
-		gui.setName("gui");
+		gui.setup("GUI", gui_filename);
 
 		ofParameterGroup infos;
 		infos.setName("informations");
@@ -52,25 +40,28 @@ void ofApp::setup(){
 		infos.setSerializable(false);
 		gui.add(infos);
 		
-		ofParameterGroup g_settings;
-		g_settings.setName("settings");
-		g_settings.add(time_step.set("time_step", 1.0f / 120.0f, 0.0f, 1.0f / 30.0f));
+		ofParameterGroup params;
+		params.setName("settings");
+		params.add(time_step.set("time_step", 1.0f / 120.0f, 0.0f, 1.0f / 30.0f));
 		time_step.setSerializable(false);
-		g_settings.add(elapsed_time.set("elapsed_time", ofGetElapsedTimef()));
+		params.add(elapsed_time.set("elapsed_time", ofGetElapsedTimef()));
 		elapsed_time.setSerializable(false);
-		g_settings.add(time_value.set("time_value", 0, 0, 1));
+		params.add(time_value.set("time_value", 0, 0, 1));
 		time_value.setSerializable(false);
-		gui.add(g_settings);
+		gui.add(params);
 
 		
     }
 
-	gui.minimizeAll();
+	//gui.minimizeAll();
 	gui.loadFromFile(gui_filename);
+
+	reset();
 }
 
 //--------------------------------------------------------------
-void ofApp::update(){
+void ofApp::update()
+{
 	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
 
 	// update params and ubo
@@ -83,7 +74,6 @@ void ofApp::update(){
 		ofClear(0);
 
 		shader.begin();
-		//drawRectangle(viewport);
 		shader.end();
 
 		fbo.end();
@@ -91,21 +81,11 @@ void ofApp::update(){
 }
 
 //--------------------------------------------------------------
-void ofApp::draw(){
+void ofApp::draw()
+{
 	ofClear(0);
 	auto viewport = ofGetCurrentViewport();
 	
-	{
-		auto rect = getCenteredRect(fbo.getWidth(), fbo.getHeight(), viewport.width, viewport.height, false);
-		auto& tex = fbo.getTexture();
-		tex.bind();
-		drawRectangle(rect);
-		tex.unbind();
-	}
-	
-
-	logger.draw();
-
 	// draw debug things
 	if (is_debug_visible)
 	{
@@ -115,12 +95,14 @@ void ofApp::draw(){
 }
 
 //--------------------------------------------------------------
-void ofApp::exit() {
+void ofApp::exit() 
+{
 	ofLog(OF_LOG_NOTICE, "application exit");
 }
 
 //--------------------------------------------------------------
-void ofApp::keyPressed(int key){	
+void ofApp::keyPressed(int key)
+{	
 	string text = "";
 	switch (key)
 	{
@@ -133,7 +115,7 @@ void ofApp::keyPressed(int key){
 		text = "reset";
 		break;
 	case OF_KEY_F11:
-		toggleFullscreen(WIDTH, HEIGHT);
+		ofToggleFullscreen();
 		text = "toggle full screen";
 		break;
 	case 's':
@@ -144,18 +126,15 @@ void ofApp::keyPressed(int key){
 		gui.loadFromFile(gui_filename);
 		text = "load gui settings";
 		break;
-	case 'p':
-		pixel_saver->saveFbo(fbo);
-		text = "save pixels";
-		break;
 	}
 
-	if (!text.empty()) logger << text << endl;
+	if (!text.empty()) cout << text << endl;
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
+void ofApp::dragEvent(ofDragInfo dragInfo)
+{ 
+	
 }
 
 ///////////////////////////////////////////////////////////////
@@ -164,6 +143,9 @@ void ofApp::reset()
 {
 	ofLog(OF_LOG_NOTICE, "%s reset", ofGetTimestampString("%H:%M:%S").c_str());
 
+	shader.setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
+	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
+	shader.linkProgram();
 }
 
 void ofApp::updateParameters()
@@ -175,15 +157,15 @@ void ofApp::updateParameters()
 	glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
 	static float used_mem = 0.0f;
 	used_mem = (total_mem_kb > 0) ? (100.0f * (total_mem_kb - cur_avail_mem_kb) / total_mem_kb) : 0.0f;
-	memory_total.set(" " + toStringWithCommas(total_mem_kb) + " kb");
-	memory_avail.set(" " + toStringWithCommas(cur_avail_mem_kb) + " kb");
-	memory_used.set(ofVAArgsToString(" %2.2f%%", used_mem));
+	memory_total.set(ofVAArgsToString("%u kb", total_mem_kb));
+	memory_avail.set(ofVAArgsToString("%u kb", cur_avail_mem_kb));
+	memory_used.set(ofVAArgsToString("%2.2f %%", used_mem));
 
 	float current_time = ofGetElapsedTimef();
-	time_step = ofClamp(current_time - elapsed_time, time_step.getMin(), time_step.getMax());
+	time_step = glm::clamp(current_time - elapsed_time, time_step.getMin(), time_step.getMax());
 	elapsed_time = current_time;
 	int interval = 100000;
 	float value = ofGetElapsedTimeMillis() % interval / float(interval);
-	time_value = sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
+	time_value = glm::sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
 
 }
