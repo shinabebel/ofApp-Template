@@ -33,7 +33,7 @@ void ofApp::setup()
 		gui.setup("GUI", gui_filename);
 
 		ofParameterGroup infos;
-		infos.setName("informations");
+		infos.setName("information");
 		infos.add(memory_total.set("total", ""));
 		infos.add(memory_avail.set("available", ""));
 		infos.add(memory_used.set("used", ""));
@@ -41,7 +41,7 @@ void ofApp::setup()
 		gui.add(infos);
 		
 		ofParameterGroup params;
-		params.setName("settings");
+		params.setName("setting");
 		params.add(time_step.set("time_step", 1.0f / 120.0f, 0.0f, 1.0f / 30.0f));
 		time_step.setSerializable(false);
 		params.add(elapsed_time.set("elapsed_time", ofGetElapsedTimef()));
@@ -73,8 +73,8 @@ void ofApp::update()
 		auto viewport = ofGetCurrentViewport();
 		ofClear(0);
 
-		shader.begin();
-		shader.end();
+		shader->begin();
+		shader->end();
 
 		fbo.end();
 	}
@@ -128,7 +128,7 @@ void ofApp::keyPressed(int key)
 		break;
 	}
 
-	if (!text.empty()) cout << text << endl;
+	if (!text.empty()) std::cout << "[KeyDown] " << text << std::endl;
 }
 
 //--------------------------------------------------------------
@@ -143,9 +143,10 @@ void ofApp::reset()
 {
 	ofLog(OF_LOG_NOTICE, "%s reset", ofGetTimestampString("%H:%M:%S").c_str());
 
-	shader.setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
-	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
-	shader.linkProgram();
+	shader.reset(new ofShader);
+	shader->setupShaderFromFile(GL_VERTEX_SHADER, "shaders/basic.vert");
+	shader->setupShaderFromFile(GL_FRAGMENT_SHADER, "shaders/basic.frag");
+	shader->linkProgram();
 }
 
 void ofApp::updateParameters()
@@ -160,12 +161,10 @@ void ofApp::updateParameters()
 	memory_total.set(ofVAArgsToString("%u kb", total_mem_kb));
 	memory_avail.set(ofVAArgsToString("%u kb", cur_avail_mem_kb));
 	memory_used.set(ofVAArgsToString("%2.2f %%", used_mem));
-
+	
 	float current_time = ofGetElapsedTimef();
 	time_step = glm::clamp(current_time - elapsed_time, time_step.getMin(), time_step.getMax());
 	elapsed_time = current_time;
-	int interval = 100000;
-	float value = ofGetElapsedTimeMillis() % interval / float(interval);
-	time_value = glm::sin(value * TWO_PI) * 0.5f + 0.5f; // continuous sin value
+	time_value = glm::sin(current_time * 0.5f) * 0.5f + 0.5f;
 
 }

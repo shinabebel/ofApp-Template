@@ -5,6 +5,8 @@
 
 namespace fs = boost::filesystem;
 
+using ofShaderRef = std::shared_ptr<ofShader>;
+
 class ofApp : public ofBaseApp
 {
 public:
@@ -39,8 +41,8 @@ private:
 	
 	// gl
 	ofFbo fbo;
-	ofShader shader;
-	ofShader compute_shader;
+	ofShaderRef shader = nullptr;
+	ofShaderRef compute_shader = nullptr;
 
 
 	bool is_debug_visible = true;
