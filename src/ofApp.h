@@ -6,6 +6,7 @@
 namespace fs = boost::filesystem;
 
 using ofShaderRef = std::shared_ptr<ofShader>;
+using ofFboRef = std::shared_ptr<ofFbo>;
 
 class ofApp : public ofBaseApp
 {
@@ -40,13 +41,13 @@ private:
 	};
 	
 	// gl
-	ofFbo fbo;
+	ofFboRef fbo = nullptr;
 	ofShaderRef shader = nullptr;
 	ofShaderRef compute_shader = nullptr;
 
 
 	bool is_debug_visible = true;
-	const string gui_filename = "gui_settings.xml";
+	const std::string gui_filename = "gui_settings.xml";
 	ofxPanel gui;
 
 	// infos
@@ -61,5 +62,25 @@ private:
 
 };
 
+namespace scoped
+{
+	class Shader
+	{
+	public:
+		Shader(ofShaderRef shader) :s(shader) { s->begin(); }
+		~Shader() { s->end(); }
+	private:
+		ofShaderRef s = nullptr;
+	};
+
+	class Fbo
+	{
+	public:
+		Fbo(ofFboRef fbo) :f(fbo) { f->begin(); }
+		~Fbo() { f->end(); }
+	private:
+		ofFboRef f = nullptr;
+	};
+}
 
 

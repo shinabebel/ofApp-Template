@@ -25,7 +25,8 @@ void ofApp::setup()
         s.useDepth = true;
 		s.colorFormats = { GL_RGBA8 };
         
-        fbo.allocate(s);
+		fbo.reset(new ofFbo);
+        fbo->allocate(s);
     }
     
 	// setup gui
@@ -63,20 +64,20 @@ void ofApp::setup()
 void ofApp::update()
 {
 	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
-
+	
 	// update params and ubo
 	updateParameters();
 	
 	// update main fbo
 	{
-		fbo.begin();
+		scoped::Fbo scp_fbo(fbo);
+
 		auto viewport = ofGetCurrentViewport();
 		ofClear(0);
 
-		shader->begin();
-		shader->end();
-
-		fbo.end();
+		{
+			scoped::Shader scp_shader(shader);
+		}
 	}
 }
 
