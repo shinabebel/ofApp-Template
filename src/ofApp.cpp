@@ -63,7 +63,7 @@ void ofApp::setup()
 //--------------------------------------------------------------
 void ofApp::update()
 {
-	ofSetWindowTitle("oF Application: " + ofToString(ofGetFrameRate(), 1));
+	ofSetWindowTitle(ofVAArgsToString("oF Application: %2.2f", ofGetFrameRate()));
 	
 	// update params and ubo
 	updateParameters();

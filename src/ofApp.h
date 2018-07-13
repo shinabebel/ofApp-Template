@@ -7,6 +7,7 @@ namespace fs = boost::filesystem;
 
 using ofShaderRef = std::shared_ptr<ofShader>;
 using ofFboRef = std::shared_ptr<ofFbo>;
+using ofEasyCamRef = std::shared_ptr<ofEasyCam>;
 
 class ofApp : public ofBaseApp
 {
@@ -80,6 +81,43 @@ namespace scoped
 		~Fbo() { f->end(); }
 	private:
 		ofFboRef f = nullptr;
+	};
+
+	class EasyCam
+	{
+	public:
+		EasyCam(ofEasyCamRef cam) :c(cam) { c->begin(); }
+		~EasyCam() { c->end(); }
+	private:
+		ofEasyCamRef c = nullptr;
+	};
+
+	class Matrix
+	{
+	public:
+		Matrix() { ofPushMatrix(); }
+		~Matrix() { ofPopMatrix(); }
+	};
+
+	class Style
+	{
+	public:
+		Style() { ofPushStyle(); }
+		~Style() { ofPopStyle(); }
+	};
+
+	class BlendMode
+	{
+	public:
+		BlendMode(ofBlendMode mode) { ofEnableBlendMode(mode); }
+		~BlendMode() { ofEnableBlendMode(OF_BLENDMODE_ALPHA); }
+	};
+
+	class DepthTest
+	{
+	public:
+		DepthTest() { ofEnableDepthTest(); }
+		~DepthTest() { ofDisableDepthTest(); }
 	};
 }
 
